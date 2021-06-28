@@ -1,0 +1,22 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - apt install jq
+      - python3 -m pip install --upgrade build
+      - python3 -m pip install --upgrade twine
+      - echo Getting PYPI token...
+      - aws secretsmanager get-secret-value --secret-id prod/pypi/build_token > pypi_token
+      - export TWINE_USERNAME=__token__
+      - export TWINE_PASSWORD=`jq --raw-output '.SecretString' pypi_token | jq -r .token`
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the python package...
+      - python3 -m build
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the python package...
+      - python3 -m twine upload dist/havoc-*
