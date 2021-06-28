@@ -1,8 +1,14 @@
-Havoc.sh provides on-demand, cloud hosted attack infrastructure that is API based, automation friendly, massively scalable, collaborative and reportable. This Python 3 module provides the base functionality for interacting with the havoc.sh REST API.
+Havoc.sh provides on-demand, cloud hosted attack infrastructure that is API based, automation friendly, massively scalable, collaborative and reportable. This Python3 library provides the base functionality for interacting with the havoc.sh REST API.
 
 ### The basics
 
-To use the havoc module:
+To install the havoc library:
+
+```
+pip install havoc
+```
+
+To use the havoc library:
  
 ```
 import havoc
