@@ -96,28 +96,30 @@ class Connect:
         if sync_direction == 'sync_from_workspace':
             payload = {'resource': 'workspace', 'command': 'list'}
             list_response = self.post(manage_api_endpoint, payload)
-            for file in list_response['files']:
-                file_list.append(file)
-                payload = {'resource': 'workspace', 'command': 'get', 'detail': {'filename': file}}
-                get_file_response = self.post(manage_api_endpoint, payload)
-                file_contents = get_file_response['file_contents']
-                f = open(f'{sync_path}/{file}', 'wb')
-                f.write(file_contents)
-                f.close()
+            if 'files' in list_response:
+                for f in list_response['files']:
+                    file_list.append(f)
+                    payload = {'resource': 'workspace', 'command': 'get', 'detail': {'filename': f}}
+                    get_file_response = self.post(manage_api_endpoint, payload)
+                    file_contents = get_file_response['file_contents']
+                    f = open(f'{sync_path}/{file}', 'wb')
+                    f.write(file_contents)
+                    f.close()
         if sync_direction == 'sync_to_workspace':
             for root, subdirs, files in os.walk(sync_path):
-                for filename in files:
-                    corrected_root = re.match(f'{sync_path}/(.*)', root).group(1)
-                    relative_path = os.path.join(corrected_root, filename)
-                    file_list.append(relative_path)
-                    file_path = os.path.join(root, filename)
-                    f = open(file_path, 'rb')
-                    file_contents = f.read()
-                    f.close()
-                    payload = {
-                        'resource': 'workspace', 'command': 'create', 'detail': {
-                            'filename': relative_path, 'file_contents': file_contents
+                if files:
+                    for filename in files:
+                        corrected_root = re.match(f'{sync_path}/(.*)', root).group(1)
+                        relative_path = os.path.join(corrected_root, filename)
+                        file_list.append(relative_path)
+                        file_path = os.path.join(root, filename)
+                        f = open(file_path, 'rb')
+                        file_contents = f.read()
+                        f.close()
+                        payload = {
+                            'resource': 'workspace', 'command': 'create', 'detail': {
+                                'filename': relative_path, 'file_contents': file_contents
+                            }
                         }
-                    }
-                    self.post(manage_api_endpoint, payload)
+                        self.post(manage_api_endpoint, payload)
         return file_list
