@@ -60,6 +60,22 @@ class Connect:
             print(err)
             print(err.response.text)
 
+    def register_task(self, task_name, task_context, task_type, attack_ip, local_ip):
+        remote_api_endpoint = f'https://{self.api_domain_name}/remote-task'
+        payload = {
+            'command': 'register_task',
+            'detail': {
+                'task_name': task_name,
+                'task_context': task_context,
+                'task_type': task_type,
+                'attack_ip': attack_ip,
+                'local_ip': local_ip
+            }
+        }
+
+        register_task_response = self.post(remote_api_endpoint, payload)
+        return register_task_response
+
     def get_commands(self, task_name):
         remote_api_endpoint = f'https://{self.api_domain_name}/remote-task'
         payload = {'command': 'get_commands', 'detail': {'task_name': task_name}}
