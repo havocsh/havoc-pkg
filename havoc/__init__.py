@@ -61,21 +61,21 @@ class Connect:
             print(err.response.text)
 
     def get_commands(self, task_name):
-        remote_api_endpoint = f'{self.api_domain_name}/remote-task'
+        remote_api_endpoint = f'https://{self.api_domain_name}/remote-task'
         payload = {'command': 'get_commands', 'detail': {'task_name': task_name}}
 
         commands_response = self.post(remote_api_endpoint, payload)
         return commands_response
 
     def post_response(self, results):
-        remote_api_endpoint = f'{self.api_domain_name}/remote-task'
+        remote_api_endpoint = f'https://{self.api_domain_name}/remote-task'
         payload = {'command': 'post_results', 'results': results}
 
         post_response = self.post(remote_api_endpoint, payload)
         return post_response
 
     def sync_workspace(self, sync_direction, sync_path):
-        manage_api_endpoint = f'{self.api_domain_name}/manage'
+        manage_api_endpoint = f'https://{self.api_domain_name}/manage'
         file_list = []
         if sync_direction == 'sync_from_workspace':
             payload = {'resource': 'workspace', 'command': 'list'}
