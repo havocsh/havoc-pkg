@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="havoc",
-    version="0.2.3",
+    version="0.2.4",
     packages=find_packages(),
 
     # Project requires Python 3.7 or higher but less than Python 4
