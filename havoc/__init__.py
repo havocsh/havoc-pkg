@@ -156,12 +156,14 @@ class Connect:
         create_user_response = self.post(self.manage_api_endpoint, payload)
         return create_user_response
 
-    def update_user(self, user_id, admin=None, reset_keys=None):
+    def update_user(self, user_id, new_user_id=None, admin=None, reset_keys=None):
         detail = {'user_id': user_id}
         if admin:
             detail['admin'] = admin
         if reset_keys:
             detail['reset_keys'] = reset_keys
+        if new_user_id:
+            detail['new_user_id'] = new_user_id
         payload = {
             'resource': 'user',
             'command': 'update',
