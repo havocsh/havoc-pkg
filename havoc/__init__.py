@@ -130,6 +130,30 @@ class Connect:
         get_task_type_response = self.post(self.manage_api_endpoint, payload)
         return get_task_type_response
 
+    def create_task_type(self, task_type, source_image, capabilities, cpu, memory):
+        payload = {
+            'resource': 'task_type',
+            'command': 'create',
+            'detail': {
+                'task_type': task_type,
+                'source_image': source_image,
+                'capabilities': capabilities,
+                'cpu': cpu,
+                'memory': memory
+            }
+        }
+        create_task_type_response = self.post(self.manage_api_endpoint, payload)
+        return create_task_type_response
+
+    def delete_task_type(self, task_type):
+        payload = {
+            'resource': 'task_type',
+            'command': 'delete',
+            'detail': {'task_type': task_type}
+        }
+        delete_task_type_response = self.post(self.manage_api_endpoint, payload)
+        return delete_task_type_response
+
     def list_users(self):
         payload = {
             'resource': 'user',
