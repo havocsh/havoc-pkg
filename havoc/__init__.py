@@ -291,10 +291,51 @@ class Connect:
         delete_portgroup_response = self.post(self.manage_api_endpoint, payload)
         return delete_portgroup_response
 
-    def run_task(self, task_name, task_type, end_time='None'):
+    def list_domains(self):
+        payload = {
+            'resource': 'domain',
+            'command': 'list'
+        }
+        list_domains_response = self.post(self.manage_api_endpoint, payload)
+        return list_domains_response
+
+    def get_domain(self, domain_name):
+        payload = {
+            'resource': 'domain',
+            'command': 'get',
+            'detail': {'domain_name': domain_name}
+        }
+        get_domain_response = self.post(self.manage_api_endpoint, payload)
+        return get_domain_response
+
+    def create_domain(self, domain_name, hosted_zone):
+        payload = {
+            'resource': 'domain',
+            'command': 'create',
+            'detail': {'domain_name': domain_name, 'hosted_zone': hosted_zone}
+        }
+        create_domain_response = self.post(self.manage_api_endpoint, payload)
+        return create_domain_response
+
+    def delete_domain(self, domain_name):
+        payload = {
+            'resource': 'domain',
+            'command': 'delete',
+            'detail': {'domain_name': domain_name}
+        }
+        delete_domain_response = self.post(self.manage_api_endpoint, payload)
+        return delete_domain_response
+
+    def run_task(self, task_name, task_type, task_host_name='None', task_domain_name='None', end_time='None'):
         payload = {
             'action': 'execute',
-            'detail': {'task_name': task_name, 'task_type': task_type, 'end_time': end_time}
+            'detail': {
+                'task_name': task_name,
+                'task_type': task_type,
+                'task_host_name': task_host_name,
+                'task_domain_name': task_domain_name,
+                'end_time': end_time
+            }
         }
         run_task_response = self.post(self.task_control_api_endpoint, payload)
         return run_task_response
