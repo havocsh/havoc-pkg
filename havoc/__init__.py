@@ -326,7 +326,8 @@ class Connect:
         delete_domain_response = self.post(self.manage_api_endpoint, payload)
         return delete_domain_response
 
-    def run_task(self, task_name, task_type, task_host_name='None', task_domain_name='None', end_time='None'):
+    def run_task(self, task_name, task_type, task_host_name='None', task_domain_name='None', portgroups=['None'],
+                 end_time='None'):
         payload = {
             'action': 'execute',
             'detail': {
@@ -334,6 +335,7 @@ class Connect:
                 'task_type': task_type,
                 'task_host_name': task_host_name,
                 'task_domain_name': task_domain_name,
+                'portgroups': portgroups,
                 'end_time': end_time
             }
         }
