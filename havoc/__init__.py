@@ -408,17 +408,15 @@ class Connect:
         if sync_direction == 'sync_to_workspace':
             for root, subdirs, files in os.walk(sync_path):
                 if files:
-                    for filename in files:
-                        corrected_root = re.match(f'{sync_path}/(.*)', root).group(1)
-                        relative_path = os.path.join(corrected_root, filename)
-                        file_list.append(relative_path)
-                        file_path = os.path.join(root, filename)
+                    for file_name in files:
+                        file_list.append(file_name)
+                        file_path = os.path.join(root, file_name)
                         f = open(file_path, 'rb')
                         file_contents = f.read()
                         f.close()
                         payload = {
                             'resource': 'workspace', 'command': 'create', 'detail': {
-                                'filename': relative_path, 'file_contents': file_contents
+                                'filename': file_name, 'file_contents': file_contents
                             }
                         }
                         self.post(self.manage_api_endpoint, payload)
