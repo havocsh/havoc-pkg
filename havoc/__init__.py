@@ -220,7 +220,7 @@ class Connect:
             'detail': {'filename': file_name}
         }
         get_file_response = self.post(self.manage_api_endpoint, payload)
-        decoded_file = base64.b64decode(get_file_response['file_contents']).encode()
+        decoded_file = base64.b64decode(get_file_response['file_contents'])
         get_file_response['file_contents'] = decoded_file
         return get_file_response
 
@@ -403,7 +403,7 @@ class Connect:
                     file_list.append(f)
                     payload = {'resource': 'workspace', 'command': 'get', 'detail': {'filename': f}}
                     get_file_response = self.post(self.manage_api_endpoint, payload)
-                    decoded_file = base64.b64decode(get_file_response['file_contents']).encode()
+                    decoded_file = base64.b64decode(get_file_response['file_contents'])
                     new_file = open(f'{sync_path}/{f}', 'wb')
                     new_file.write(decoded_file)
                     new_file.close()
