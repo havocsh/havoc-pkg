@@ -220,6 +220,8 @@ class Connect:
             'detail': {'filename': file_name}
         }
         get_file_response = self.post(self.manage_api_endpoint, payload)
+        decoded_file = base64.b64decode(get_file_response['file_contents']).encode()
+        get_file_response['file_contents'] = decoded_file
         return get_file_response
 
     def create_file(self, file_name, raw_file):
@@ -401,10 +403,10 @@ class Connect:
                     file_list.append(f)
                     payload = {'resource': 'workspace', 'command': 'get', 'detail': {'filename': f}}
                     get_file_response = self.post(self.manage_api_endpoint, payload)
-                    file_contents = get_file_response['file_contents']
-                    f = open(f'{sync_path}/{file}', 'wb')
-                    f.write(file_contents)
-                    f.close()
+                    decoded_file = base64.b64decode(get_file_response['file_contents']).encode()
+                    new_file = open(f'{sync_path}/{f}', 'wb')
+                    new_file.write(decoded_file)
+                    new_file.close()
         if sync_direction == 'sync_to_workspace':
             for root, subdirs, files in os.walk(sync_path):
                 if files:
@@ -413,10 +415,11 @@ class Connect:
                         file_path = os.path.join(root, file_name)
                         f = open(file_path, 'rb')
                         file_contents = f.read()
+                        encoded_file = base64.b64encode(file_contents).decode()
                         f.close()
                         payload = {
                             'resource': 'workspace', 'command': 'create', 'detail': {
-                                'filename': file_name, 'file_contents': file_contents
+                                'filename': file_name, 'file_contents': encoded_file
                             }
                         }
                         self.post(self.manage_api_endpoint, payload)
