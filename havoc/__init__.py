@@ -7,7 +7,8 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-import os, re, json, datetime, hashlib, hmac, requests, base64
+import os, random, string, json, datetime, hashlib, hmac, requests, base64
+import time as t
 
 
 def sign(key, msg):
@@ -74,7 +75,7 @@ class Connect:
             self.api_key.encode('utf-8')).hexdigest()
 
         # Generate signature
-        signature = hmac.new(signing_key, (string_to_sign).encode('utf-8'), hashlib.sha256).hexdigest()
+        signature = hmac.new(signing_key, string_to_sign.encode('utf-8'), hashlib.sha256).hexdigest()
 
         # Create and issue post
         headers = {'x-api-key': self.api_key, 'x-sig-date': sig_date, 'x-signature': signature}
@@ -365,6 +366,47 @@ class Connect:
         }
         get_task_results_response = self.post(self.task_control_api_endpoint, payload)
         return get_task_results_response
+
+    def task_startup(self, task_name, task_type, task_host_name, task_domain_name, portgroups):
+        self.run_task(task_name, task_type, task_host_name, task_domain_name, portgroups)
+        task_status = None
+        task_details = None
+        while task_status != 'idle':
+            t.sleep(5)
+            task_details = self.get_task(task_name)
+            task_status = task_details['task_status']
+        return task_details
+
+    def task_shutdown(self, task_name):
+        command_finished = None
+        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+        instruct_command = 'terminate'
+        self.instruct_task(task_name, instruct_instance, instruct_command)
+        while not command_finished:
+            instruct_results = self.get_task_results(task_name)
+            for entry in instruct_results['queue']:
+                if entry['instruct_command'] == instruct_command and entry['instruct_instance'] == instruct_instance:
+                    command_finished = True
+            if not command_finished:
+                t.sleep(5)
+        return True
+
+    def interact_with_task(self, task_name, instruct_command, instruct_instance, instruct_args=None):
+        results = []
+        interaction = self.instruct_task(task_name, instruct_command, instruct_instance, instruct_args)
+        if interaction:
+            command_finished = None
+            while not command_finished:
+                command_results = self.get_task_results(task_name)
+                if 'queue' in command_results:
+                    for entry in command_results['queue']:
+                        if entry['instruct_command'] == instruct_command and entry[
+                            'instruct_instance'] == instruct_instance:
+                            command_finished = True
+                            results.append(entry)
+                if not command_finished:
+                    t.sleep(5)
+        return results
 
     def register_task(self, task_name, task_context, task_type, attack_ip, local_ip):
         payload = {
