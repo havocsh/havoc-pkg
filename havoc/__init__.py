@@ -392,19 +392,17 @@ class Connect:
         return True
 
     def interact_with_task(self, task_name, instruct_command, instruct_instance, instruct_args=None):
-        results = []
+        results = None
         interaction = self.instruct_task(task_name, instruct_command, instruct_instance, instruct_args)
         if interaction:
-            command_finished = None
-            while not command_finished:
+            while not results:
                 command_results = self.get_task_results(task_name)
                 if 'queue' in command_results:
                     for entry in command_results['queue']:
                         if entry['instruct_command'] == instruct_command and entry[
                             'instruct_instance'] == instruct_instance:
-                            command_finished = True
-                            results.append(entry)
-                if not command_finished:
+                            results = json.loads(entry['instruct_command_output'])
+                if not results:
                     t.sleep(5)
         return results
 
