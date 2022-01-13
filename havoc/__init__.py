@@ -391,9 +391,9 @@ class Connect:
                 t.sleep(5)
         return True
 
-    def interact_with_task(self, task_name, instruct_command, instruct_instance, instruct_args=None):
+    def interact_with_task(self, task_name, instruct_instance, instruct_command, instruct_args=None):
         results = None
-        interaction = self.instruct_task(task_name, instruct_command, instruct_instance, instruct_args)
+        interaction = self.instruct_task(task_name, instruct_instance, instruct_command, instruct_args)
         if interaction:
             while not results:
                 command_results = self.get_task_results(task_name)
