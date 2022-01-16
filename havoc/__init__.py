@@ -406,7 +406,9 @@ class Connect:
         command_finished = None
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_command = 'terminate'
-        self.instruct_task(task_name, instruct_instance, instruct_command)
+        instruct_task_response = self.instruct_task(task_name, instruct_instance, instruct_command)
+        if instruct_task_response['result'] != 'success':
+            return instruct_task_response
         while not command_finished:
             instruct_results = self.get_task_results(task_name)
             for entry in instruct_results['queue']:
@@ -414,12 +416,21 @@ class Connect:
                     command_finished = True
             if not command_finished:
                 t.sleep(5)
-        return True
+        return 'task_shutdown completed.'
+
+    def verify_task(self, task_name, task_type):
+        task_list = self.list_tasks()
+        if task_name in task_list:
+            task = self.get_task(task_name)
+            if task['task_type'] == task_type:
+                return task
+        else:
+            return False
 
     def interact_with_task(self, task_name, instruct_instance, instruct_command, instruct_args=None):
         results = None
         interaction = self.instruct_task(task_name, instruct_instance, instruct_command, instruct_args)
-        if interaction:
+        if interaction['result'] == 'success':
             while not results:
                 command_results = self.get_task_results(task_name)
                 if 'queue' in command_results:
