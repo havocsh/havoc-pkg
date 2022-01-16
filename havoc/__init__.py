@@ -367,8 +367,33 @@ class Connect:
         get_task_results_response = self.post(self.task_control_api_endpoint, payload)
         return get_task_results_response
 
-    def task_startup(self, task_name, task_type, task_host_name, task_domain_name, portgroups):
-        self.run_task(task_name, task_type, task_host_name, task_domain_name, portgroups)
+    def get_filtered_task_results(self, task_name, instruct_command=None, instruct_instance=None):
+        get_task_results_response = self.get_task_results(task_name)
+        if 'queue' not in get_task_results_response:
+            return get_task_results_response
+        filtered_results = []
+        if not instruct_command and not instruct_instance:
+            for result in get_task_results_response['queue']:
+                filtered_results.append(result)
+        if instruct_command and not instruct_instance:
+            for result in get_task_results_response['queue']:
+                if result['instruct_command'] == instruct_command:
+                    filtered_results.append(result)
+        if instruct_instance and not instruct_command:
+            for result in get_task_results_response['queue']:
+                if result['instruct_instance'] == instruct_instance:
+                    filtered_results.append(result)
+        if instruct_command and instruct_instance:
+            for result in get_task_results_response['queue']:
+                if result['instruct_command'] == instruct_command and result['instruct_instance'] == instruct_instance:
+                    filtered_results.append(result)
+        del get_task_results_response['queue']
+        get_task_results_response['queue'] = filtered_results
+        return get_task_results_response
+
+    def task_startup(self, task_name, task_type, task_host_name='None', task_domain_name='None', portgroups=['None'],
+                 end_time='None'):
+        self.run_task(task_name, task_type, task_host_name, task_domain_name, portgroups, end_time)
         task_status = None
         task_details = None
         while task_status != 'idle':
@@ -404,6 +429,21 @@ class Connect:
                             results = json.loads(entry['instruct_command_output'])
                 if not results:
                     t.sleep(5)
+        else:
+            return interaction
+        return results
+
+    def wait_for_c2(self, task_name):
+        results = None
+        while not results:
+            command_results = self.get_task_results(task_name)
+            if 'queue' in command_results:
+                for entry in command_results['queue']:
+                    instruct_command = entry['instruct_command']
+                    if instruct_command == 'agent_status_monitor' or instruct_command == 'session_status_monitor':
+                        results = json.loads(entry['instruct_command_output'])
+            if not results:
+                t.sleep(5)
         return results
 
     def register_task(self, task_name, task_context, task_type, attack_ip, local_ip):
