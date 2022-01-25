@@ -420,7 +420,7 @@ class Connect:
 
     def verify_task(self, task_name, task_type):
         task_list = self.list_tasks()
-        if task_name in task_list:
+        if task_name in task_list['tasks']:
             task = self.get_task(task_name)
             if task['task_type'] == task_type:
                 return task
