@@ -407,7 +407,7 @@ class Connect:
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_command = 'terminate'
         instruct_task_response = self.instruct_task(task_name, instruct_instance, instruct_command)
-        if instruct_task_response['result'] != 'success':
+        if instruct_task_response['outcome'] != 'success':
             return instruct_task_response
         while not command_finished:
             instruct_results = self.get_task_results(task_name)
@@ -427,10 +427,19 @@ class Connect:
         else:
             return False
 
+    def wait_for_idle_task(self, task_name):
+        task_status = None
+        task_details = None
+        while task_status != 'idle':
+            t.sleep(5)
+            task_details = self.get_task(task_name)
+            task_status = task_details['task_status']
+        return task_details
+
     def interact_with_task(self, task_name, instruct_instance, instruct_command, instruct_args=None):
         results = None
         interaction = self.instruct_task(task_name, instruct_instance, instruct_command, instruct_args)
-        if interaction['result'] == 'success':
+        if interaction['outcome'] == 'success':
             while not results:
                 command_results = self.get_task_results(task_name)
                 if 'queue' in command_results:
