@@ -436,9 +436,10 @@ class Connect:
             task_status = task_details['task_status']
         return task_details
 
-    def interact_with_task(self, task_name, instruct_command, instruct_args=None):
+    def interact_with_task(self, task_name, instruct_command, instruct_instance=None, instruct_args=None):
         results = None
-        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+        if not instruct_instance:
+            instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         interaction = self.instruct_task(task_name, instruct_instance, instruct_command, instruct_args)
         if interaction['outcome'] == 'success':
             while not results:
