@@ -457,13 +457,23 @@ class Connect:
 
     def wait_for_c2(self, task_name):
         results = None
+        existing_agents = []
+        get_existing_agents = self.get_task_results(task_name)
+        if 'queue' in get_existing_agents:
+            for get_existing_agent in get_existing_agents['queue']:
+                instruct_command = get_existing_agent['instruct_command']
+                if instruct_command == 'agent_status_monitor' or instruct_command == 'session_status_monitor':
+                    instruct_command_output = json.loads(get_existing_agent['instruct_command_output'])
+                    existing_agents.append(instruct_command_output['agent_info']['name'])
         while not results:
             command_results = self.get_task_results(task_name)
             if 'queue' in command_results:
-                for entry in command_results['queue']:
-                    instruct_command = entry['instruct_command']
+                for command_result in command_results['queue']:
+                    instruct_command = command_result['instruct_command']
                     if instruct_command == 'agent_status_monitor' or instruct_command == 'session_status_monitor':
-                        results = json.loads(entry['instruct_command_output'])
+                        instruct_command_output = json.loads(command_result['instruct_command_output'])
+                        if instruct_command_output['agent_info']['name'] not in existing_agents:
+                            results = instruct_command_output
             if not results:
                 t.sleep(5)
         return results
