@@ -7,7 +7,8 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-import os, re, json, datetime, hashlib, hmac, requests, base64
+import os, random, string, json, datetime, hashlib, hmac, requests, base64
+import time as t
 
 
 def sign(key, msg):
@@ -74,7 +75,7 @@ class Connect:
             self.api_key.encode('utf-8')).hexdigest()
 
         # Generate signature
-        signature = hmac.new(signing_key, (string_to_sign).encode('utf-8'), hashlib.sha256).hexdigest()
+        signature = hmac.new(signing_key, string_to_sign.encode('utf-8'), hashlib.sha256).hexdigest()
 
         # Create and issue post
         headers = {'x-api-key': self.api_key, 'x-sig-date': sig_date, 'x-signature': signature}
@@ -365,6 +366,117 @@ class Connect:
         }
         get_task_results_response = self.post(self.task_control_api_endpoint, payload)
         return get_task_results_response
+
+    def get_filtered_task_results(self, task_name, instruct_command=None, instruct_instance=None):
+        get_task_results_response = self.get_task_results(task_name)
+        if 'queue' not in get_task_results_response:
+            return get_task_results_response
+        filtered_results = []
+        if not instruct_command and not instruct_instance:
+            for result in get_task_results_response['queue']:
+                filtered_results.append(result)
+        if instruct_command and not instruct_instance:
+            for result in get_task_results_response['queue']:
+                if result['instruct_command'] == instruct_command:
+                    filtered_results.append(result)
+        if instruct_instance and not instruct_command:
+            for result in get_task_results_response['queue']:
+                if result['instruct_instance'] == instruct_instance:
+                    filtered_results.append(result)
+        if instruct_command and instruct_instance:
+            for result in get_task_results_response['queue']:
+                if result['instruct_command'] == instruct_command and result['instruct_instance'] == instruct_instance:
+                    filtered_results.append(result)
+        del get_task_results_response['queue']
+        get_task_results_response['queue'] = filtered_results
+        return get_task_results_response
+
+    def task_startup(self, task_name, task_type, task_host_name='None', task_domain_name='None', portgroups=['None'],
+                 end_time='None'):
+        self.run_task(task_name, task_type, task_host_name, task_domain_name, portgroups, end_time)
+        task_status = None
+        task_details = None
+        while task_status != 'idle':
+            t.sleep(5)
+            task_details = self.get_task(task_name)
+            task_status = task_details['task_status']
+        return task_details
+
+    def task_shutdown(self, task_name):
+        command_finished = None
+        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+        instruct_command = 'terminate'
+        instruct_task_response = self.instruct_task(task_name, instruct_instance, instruct_command)
+        if instruct_task_response['outcome'] != 'success':
+            return instruct_task_response
+        while not command_finished:
+            instruct_results = self.get_task_results(task_name)
+            for entry in instruct_results['queue']:
+                if entry['instruct_command'] == instruct_command and entry['instruct_instance'] == instruct_instance:
+                    command_finished = True
+            if not command_finished:
+                t.sleep(5)
+        return 'task_shutdown completed.'
+
+    def verify_task(self, task_name, task_type):
+        task_list = self.list_tasks()
+        if task_name in task_list['tasks']:
+            task = self.get_task(task_name)
+            if task['task_type'] == task_type:
+                return task
+        else:
+            return False
+
+    def wait_for_idle_task(self, task_name):
+        task_status = None
+        task_details = None
+        while task_status != 'idle':
+            t.sleep(5)
+            task_details = self.get_task(task_name)
+            task_status = task_details['task_status']
+        return task_details
+
+    def interact_with_task(self, task_name, instruct_command, instruct_instance=None, instruct_args=None):
+        results = None
+        if not instruct_instance:
+            instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+        interaction = self.instruct_task(task_name, instruct_instance, instruct_command, instruct_args)
+        if interaction['outcome'] == 'success':
+            while not results:
+                command_results = self.get_task_results(task_name)
+                if 'queue' in command_results:
+                    for entry in command_results['queue']:
+                        if entry['instruct_command'] == instruct_command and entry[
+                            'instruct_instance'] == instruct_instance:
+                            results = json.loads(entry['instruct_command_output'])
+                if not results:
+                    t.sleep(5)
+        else:
+            return interaction
+        return results
+
+    def wait_for_c2(self, task_name):
+        results = None
+        existing_agents = []
+        get_existing_agents = self.get_task_results(task_name)
+        if 'queue' in get_existing_agents:
+            for get_existing_agent in get_existing_agents['queue']:
+                instruct_command = get_existing_agent['instruct_command']
+                if instruct_command == 'agent_status_monitor' or instruct_command == 'session_status_monitor':
+                    instruct_command_output = json.loads(get_existing_agent['instruct_command_output'])
+                    existing_agents.append(instruct_command_output['agent_info']['name'])
+        while not results:
+            command_results = self.get_task_results(task_name)
+            if 'queue' in command_results:
+                for command_result in command_results['queue']:
+                    instruct_command = command_result['instruct_command']
+                    if instruct_command == 'agent_status_monitor' or instruct_command == 'session_status_monitor':
+                        instruct_command_output = json.loads(command_result['instruct_command_output'])
+                        if instruct_command_output['agent_info']['name'] not in existing_agents:
+                            results = instruct_command_output
+            if not results:
+                t.sleep(5)
+        return results
 
     def register_task(self, task_name, task_context, task_type, attack_ip, local_ip):
         payload = {
