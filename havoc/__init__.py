@@ -7,7 +7,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-import os, random, string, json, datetime, hashlib, hmac, requests, base64
+import os, zlib, random, string, json, datetime, hashlib, hmac, requests, base64
 import time as t
 
 
@@ -453,6 +453,69 @@ class Connect:
                     t.sleep(5)
         else:
             return interaction
+        return results
+    
+    def verify_agent(self, task_name, agent_name):
+        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+        instruct_command = 'get_agents'
+        instruct_args = {'Name': agent_name}
+        agents_list = self.interact_with_task(task_name, instruct_command, instruct_instance, instruct_args)
+        agent_exists = False
+        for agent in agents_list['agents']:
+            if agent_name == agent['name']:
+                return agent
+            else:
+                return False
+
+    def execute_agent_shell_command(self, task_name, agent_name, command):
+        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+        instruct_args = {'Name': agent_name, 'command': command}
+        command_response = self.interact_with_task(task_name, 'agent_shell_command', instruct_instance, instruct_args)
+        if command_response['outcome'] == 'success':
+            command_task_id = command_response['message']['taskID']
+        else:
+            return command_response
+        results = None
+        while not results:
+            instruct_args = {'Name': agent_name}
+            command_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
+            if command_results['outcome'] == 'success':
+                for command_result in command_results['results']:
+                    if 'taskID' in command_result and command_result['taskID'] == command_task_id and 'results' in command_result:
+                        if command_result['results'] is not None:
+                            results = zlib.decompress(base64.b64decode(command_result['results'].encode())).decode()
+            else:
+                results = f'get_shell_command_results for execute_agent_shell_command failed.\n'
+            if not results:
+                t.sleep(10)
+        return results
+    
+    def execute_agent_module(self, task_name, agent_name, module, module_args):
+        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+        instruct_args = {'Agent': agent_name, 'Name': module}
+        for k, v in module_args.items():
+            if v:
+                instruct_args[k] = v
+        module_response = self.interact_with_task(task_name, 'execute_module', instruct_instance, instruct_args)
+        if module_response['outcome'] == 'success':
+            module_task_id = module_response['message']['taskID']
+        else:
+            return module_response
+        results = None
+        while not results:
+            instruct_args = {'Name': agent_name}
+            module_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
+            if module_results['outcome'] == 'success':
+                for module_result in module_results['results']:
+                    if 'taskID' in module_result and module_result['taskID'] == module_task_id and 'results' in module_result:
+                        if module_result['results'] is not None:
+                            tmp_results = zlib.decompress(base64.b64decode(module_result['results'].encode())).decode()
+                            if 'Job started:' not in tmp_results:
+                                results = tmp_results
+            else:
+                results = f'get_shell_command_results for execute_agent_module failed.\n'
+            if not results:
+                t.sleep(10)
         return results
 
     def wait_for_c2(self, task_name):
