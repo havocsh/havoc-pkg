@@ -479,11 +479,12 @@ class Connect:
         while not results:
             instruct_args = {'Name': agent_name}
             command_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
-            if command_results['outcome'] == 'success':
-                for command_result in command_results['results']:
-                    if 'taskID' in command_result and command_result['taskID'] == command_task_id and 'results' in command_result:
-                        if command_result['results'] is not None:
-                            results = zlib.decompress(base64.b64decode(command_result['results'].encode())).decode()
+            if command_results['outcome'] == 'success' and command_results['results']:
+                tmp_results = json.loads(zlib.decompress(base64.b64decode(command_result['results'].encode())).decode())
+                for tmp_result in tmp_results['results']:
+                    if 'taskID' in tmp_result and tmp_result['taskID'] == command_task_id:
+                        if tmp_result['results'] is not None:
+                            results = tmp_results['results']
             else:
                 results = f'get_shell_command_results for execute_agent_shell_command failed.\n'
             if not results:
@@ -505,13 +506,12 @@ class Connect:
         while not results:
             instruct_args = {'Name': agent_name}
             module_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
-            if module_results['outcome'] == 'success':
-                for module_result in module_results['results']:
-                    if 'taskID' in module_result and module_result['taskID'] == module_task_id and 'results' in module_result:
-                        if module_result['results'] is not None:
-                            tmp_results = zlib.decompress(base64.b64decode(module_result['results'].encode())).decode()
-                            if 'Job started:' not in tmp_results:
-                                results = tmp_results
+            if module_results['outcome'] == 'success' and module_results['results']:
+                tmp_results = json.loads(zlib.decompress(base64.b64decode(module_results['results'].encode())).decode())
+                for tmp_result in tmp_results['results']:
+                    if 'taskID' in tmp_result and tmp_result['taskID'] == module_task_id:
+                        if tmp_result['results'] is not None and 'Job started:' not in tmp_result['results']:
+                            results = tmp_results['results']
             else:
                 results = f'get_shell_command_results for execute_agent_module failed.\n'
             if not results:
