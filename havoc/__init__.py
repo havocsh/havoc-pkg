@@ -481,10 +481,10 @@ class Connect:
             command_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
             if command_results['outcome'] == 'success' and command_results['results']:
                 tmp_results = json.loads(zlib.decompress(base64.b64decode(command_result['results'].encode())).decode())
-                for tmp_result in tmp_results['results']:
+                for tmp_result in tmp_results:
                     if 'taskID' in tmp_result and tmp_result['taskID'] == command_task_id:
                         if tmp_result['results'] is not None:
-                            results = tmp_results['results']
+                            results = tmp_result['results']
             else:
                 results = f'get_shell_command_results for execute_agent_shell_command failed.\n'
             if not results:
@@ -508,10 +508,10 @@ class Connect:
             module_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
             if module_results['outcome'] == 'success' and module_results['results']:
                 tmp_results = json.loads(zlib.decompress(base64.b64decode(module_results['results'].encode())).decode())
-                for tmp_result in tmp_results['results']:
+                for tmp_result in tmp_results:
                     if 'taskID' in tmp_result and tmp_result['taskID'] == module_task_id:
                         if tmp_result['results'] is not None and 'Job started:' not in tmp_result['results']:
-                            results = tmp_results['results']
+                            results = tmp_result['results']
             else:
                 results = f'get_shell_command_results for execute_agent_module failed.\n'
             if not results:
