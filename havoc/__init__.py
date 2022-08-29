@@ -480,7 +480,7 @@ class Connect:
             instruct_args = {'Name': agent_name}
             command_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
             if command_results['outcome'] == 'success' and command_results['results']:
-                tmp_results = json.loads(zlib.decompress(base64.b64decode(command_result['results'].encode())).decode())
+                tmp_results = json.loads(zlib.decompress(base64.b64decode(command_results['results'].encode())).decode())
                 for tmp_result in tmp_results:
                     if 'taskID' in tmp_result and tmp_result['taskID'] == command_task_id:
                         if tmp_result['results'] is not None:
