@@ -495,8 +495,7 @@ class Connect:
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Agent': agent_name, 'Name': module}
         for k, v in module_args.items():
-            if v:
-                instruct_args[k] = v
+            instruct_args[k] = v
         module_response = self.interact_with_task(task_name, 'execute_module', instruct_instance, instruct_args)
         if module_response['outcome'] == 'success':
             module_task_id = module_response['message']['taskID']
