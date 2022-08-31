@@ -359,10 +359,10 @@ class Connect:
         instruct_task_response = self.post(self.task_control_api_endpoint, payload)
         return instruct_task_response
 
-    def get_task_results(self, task_name):
+    def get_task_results(self, task_name, start_time=None, end_time=None):
         payload = {
             'action': 'get_results',
-            'detail': {'task_name': task_name}
+            'detail': {'task_name': task_name, 'start_time': start_time, 'end_time': end_time}
         }
         get_task_results_response = self.post(self.task_control_api_endpoint, payload)
         return get_task_results_response
