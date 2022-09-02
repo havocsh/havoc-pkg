@@ -420,10 +420,11 @@ class Connect:
 
     def verify_task(self, task_name, task_type):
         task_list = self.list_tasks()
-        if task_name in task_list['tasks']:
-            task = self.get_task(task_name)
-            if task['task_type'] == task_type and task['task_status'] != 'terminated':
-                return task
+        for task in task_list['tasks']:
+            if task_name == task['task_name']:
+                task_details = self.get_task(task_name)
+                if task_details['task_type'] == task_type and task_details['task_status'] != 'terminated':
+                    return task
         else:
             return False
 
