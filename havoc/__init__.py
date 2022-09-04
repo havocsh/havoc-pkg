@@ -468,7 +468,7 @@ class Connect:
             else:
                 return False
 
-    def execute_agent_shell_command(self, task_name, agent_name, command, wait_for_results=True):
+    def execute_agent_shell_command(self, task_name, agent_name, command, wait_for_results=True, completion_string=None):
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Name': agent_name, 'command': command}
         command_response = self.interact_with_task(task_name, 'agent_shell_command', instruct_instance, instruct_args)
@@ -486,7 +486,10 @@ class Connect:
                     for tmp_result in tmp_results:
                         if 'taskID' in tmp_result and tmp_result['taskID'] == command_task_id:
                             if tmp_result['results'] is not None:
-                                results = tmp_result['results']
+                                if completion_string is not None and completion_string in tmp_result['results']:
+                                    results = tmp_result['results']
+                                if completion_string is None:
+                                    results = tmp_result['results']
                 else:
                     results = f'get_shell_command_results for execute_agent_shell_command failed.\n'
                 if not results:
@@ -495,7 +498,7 @@ class Connect:
         else:
             return command_response
     
-    def execute_agent_module(self, task_name, agent_name, module, module_args, wait_for_results=True):
+    def execute_agent_module(self, task_name, agent_name, module, module_args, wait_for_results=True, completion_string=None):
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Agent': agent_name, 'Name': module}
         for k, v in module_args.items():
@@ -515,7 +518,10 @@ class Connect:
                     for tmp_result in tmp_results:
                         if 'taskID' in tmp_result and tmp_result['taskID'] == module_task_id:
                             if tmp_result['results'] is not None and 'Job started:' not in tmp_result['results']:
-                                results = tmp_result['results']
+                                if completion_string is not None and completion_string in tmp_result['results']:
+                                    results = tmp_result['results']
+                                if completion_string is None:
+                                    results = tmp_result['results']
                 else:
                     results = f'get_shell_command_results for execute_agent_module failed.\n'
                 if not results:
