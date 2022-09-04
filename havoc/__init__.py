@@ -367,8 +367,8 @@ class Connect:
         get_task_results_response = self.post(self.task_control_api_endpoint, payload)
         return get_task_results_response
 
-    def get_filtered_task_results(self, task_name, instruct_command=None, instruct_instance=None):
-        get_task_results_response = self.get_task_results(task_name)
+    def get_filtered_task_results(self, task_name, instruct_command=None, instruct_instance=None, start_time=None, end_time=None):
+        get_task_results_response = self.get_task_results(task_name, start_time, end_time)
         if 'queue' not in get_task_results_response:
             return get_task_results_response
         filtered_results = []
