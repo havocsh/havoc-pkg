@@ -359,16 +359,16 @@ class Connect:
         instruct_task_response = self.post(self.task_control_api_endpoint, payload)
         return instruct_task_response
 
-    def get_task_results(self, task_name):
+    def get_task_results(self, task_name, start_time=None, end_time=None):
         payload = {
             'action': 'get_results',
-            'detail': {'task_name': task_name}
+            'detail': {'task_name': task_name, 'start_time': start_time, 'end_time': end_time}
         }
         get_task_results_response = self.post(self.task_control_api_endpoint, payload)
         return get_task_results_response
 
-    def get_filtered_task_results(self, task_name, instruct_command=None, instruct_instance=None):
-        get_task_results_response = self.get_task_results(task_name)
+    def get_filtered_task_results(self, task_name, instruct_command=None, instruct_instance=None, start_time=None, end_time=None):
+        get_task_results_response = self.get_task_results(task_name, start_time, end_time)
         if 'queue' not in get_task_results_response:
             return get_task_results_response
         filtered_results = []
@@ -420,10 +420,11 @@ class Connect:
 
     def verify_task(self, task_name, task_type):
         task_list = self.list_tasks()
-        if task_name in task_list['tasks']:
-            task = self.get_task(task_name)
-            if task['task_type'] == task_type:
-                return task
+        for task in task_list['tasks']:
+            if task_name == task['task_name']:
+                task_details = self.get_task(task_name)
+                if task_details['task_type'] == task_type and task_details['task_status'] != 'terminated':
+                    return task
         else:
             return False
 
@@ -467,7 +468,7 @@ class Connect:
             else:
                 return False
 
-    def execute_agent_shell_command(self, task_name, agent_name, command):
+    def execute_agent_shell_command(self, task_name, agent_name, command, wait_for_results=True, completion_string=None):
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Name': agent_name, 'command': command}
         command_response = self.interact_with_task(task_name, 'agent_shell_command', instruct_instance, instruct_args)
@@ -475,23 +476,29 @@ class Connect:
             command_task_id = command_response['message']['taskID']
         else:
             return command_response
-        results = None
-        while not results:
-            instruct_args = {'Name': agent_name}
-            command_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
-            if command_results['outcome'] == 'success' and command_results['results']:
-                tmp_results = json.loads(zlib.decompress(base64.b64decode(command_results['results'].encode())).decode())
-                for tmp_result in tmp_results:
-                    if 'taskID' in tmp_result and tmp_result['taskID'] == command_task_id:
-                        if tmp_result['results'] is not None:
-                            results = tmp_result['results']
-            else:
-                results = f'get_shell_command_results for execute_agent_shell_command failed.\n'
-            if not results:
-                t.sleep(10)
-        return results
+        if wait_for_results:
+            results = None
+            while not results:
+                instruct_args = {'Name': agent_name}
+                command_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
+                if command_results['outcome'] == 'success' and command_results['results']:
+                    tmp_results = json.loads(zlib.decompress(base64.b64decode(command_results['results'].encode())).decode())
+                    for tmp_result in tmp_results:
+                        if 'taskID' in tmp_result and tmp_result['taskID'] == command_task_id:
+                            if tmp_result['results'] is not None:
+                                if completion_string is not None and completion_string in tmp_result['results']:
+                                    results = tmp_result['results']
+                                if completion_string is None:
+                                    results = tmp_result['results']
+                else:
+                    results = f'get_shell_command_results for execute_agent_shell_command failed.\n'
+                if not results:
+                    t.sleep(10)
+            return results
+        else:
+            return command_response
     
-    def execute_agent_module(self, task_name, agent_name, module, module_args):
+    def execute_agent_module(self, task_name, agent_name, module, module_args, wait_for_results=True, completion_string=None):
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Agent': agent_name, 'Name': module}
         for k, v in module_args.items():
@@ -501,20 +508,44 @@ class Connect:
             module_task_id = module_response['message']['taskID']
         else:
             return module_response
-        results = None
-        while not results:
-            instruct_args = {'Name': agent_name}
-            module_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
-            if module_results['outcome'] == 'success' and module_results['results']:
-                tmp_results = json.loads(zlib.decompress(base64.b64decode(module_results['results'].encode())).decode())
+        if wait_for_results:
+            results = None
+            while not results:
+                instruct_args = {'Name': agent_name}
+                module_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
+                if module_results['outcome'] == 'success' and module_results['results']:
+                    tmp_results = json.loads(zlib.decompress(base64.b64decode(module_results['results'].encode())).decode())
+                    for tmp_result in tmp_results:
+                        if 'taskID' in tmp_result and tmp_result['taskID'] == module_task_id:
+                            if tmp_result['results'] is not None and 'Job started:' not in tmp_result['results']:
+                                if completion_string is not None and completion_string in tmp_result['results']:
+                                    results = tmp_result['results']
+                                if completion_string is None:
+                                    results = tmp_result['results']
+                else:
+                    results = f'get_shell_command_results for execute_agent_module failed.\n'
+                if not results:
+                    t.sleep(10)
+            return results
+        else:
+            return module_response
+    
+    def get_agent_results(self, task_name, agent_name, task_id=None):
+        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+        instruct_args = {'Name': agent_name}
+        agent_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
+        if agent_results['results']:
+            tmp_results = json.loads(zlib.decompress(base64.b64decode(agent_results['results'].encode())).decode())
+            if task_id:
                 for tmp_result in tmp_results:
-                    if 'taskID' in tmp_result and tmp_result['taskID'] == module_task_id:
-                        if tmp_result['results'] is not None and 'Job started:' not in tmp_result['results']:
-                            results = tmp_result['results']
+                    if 'taskID' in tmp_result and tmp_result['taskID'] == task_id:
+                        results = tmp_result['results']
+                if not results:
+                    results = tmp_results
             else:
-                results = f'get_shell_command_results for execute_agent_module failed.\n'
-            if not results:
-                t.sleep(10)
+                results = tmp_results
+        else:
+            results = agent_results
         return results
 
     def wait_for_c2(self, task_name):
