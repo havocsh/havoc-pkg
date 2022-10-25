@@ -88,7 +88,7 @@ class Connect:
             print(err)
             print(err.response.text)
 
-    def list_tasks(self, task_name_contains=None, task_status='running'):
+    def list_tasks(self, task_name_contains='', task_status='running'):
         payload = {
             'resource': 'task',
             'command': 'list',
