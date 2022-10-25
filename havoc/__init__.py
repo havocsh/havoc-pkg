@@ -88,10 +88,11 @@ class Connect:
             print(err)
             print(err.response.text)
 
-    def list_tasks(self):
+    def list_tasks(self, task_name_contains=None, task_status='running'):
         payload = {
             'resource': 'task',
-            'command': 'list'
+            'command': 'list',
+            'detail': {'task_name_contains': task_name_contains, 'task_status': task_status}
         }
         list_tasks_response = self.post(self.manage_api_endpoint, payload)
         return list_tasks_response
