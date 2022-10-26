@@ -88,10 +88,11 @@ class Connect:
             print(err)
             print(err.response.text)
 
-    def list_tasks(self):
+    def list_tasks(self, task_name_contains='', task_status='running'):
         payload = {
             'resource': 'task',
-            'command': 'list'
+            'command': 'list',
+            'detail': {'task_name_contains': task_name_contains, 'task_status': task_status}
         }
         list_tasks_response = self.post(self.manage_api_endpoint, payload)
         return list_tasks_response
@@ -477,24 +478,26 @@ class Connect:
         else:
             return command_response
         if wait_for_results:
-            results = None
-            while not results:
-                instruct_args = {'Name': agent_name}
-                command_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
-                if command_results['outcome'] == 'success' and command_results['results']:
-                    tmp_results = json.loads(zlib.decompress(base64.b64decode(command_results['results'].encode())).decode())
-                    for tmp_result in tmp_results:
-                        if 'taskID' in tmp_result and tmp_result['taskID'] == command_task_id:
-                            if tmp_result['results'] is not None:
-                                if completion_string is not None and completion_string in tmp_result['results']:
-                                    results = tmp_result['results']
-                                if completion_string is None:
-                                    results = tmp_result['results']
-                else:
-                    results = f'get_shell_command_results for execute_agent_shell_command failed.\n'
-                if not results:
-                    t.sleep(10)
-            return results
+            try:
+                results = None
+                while not results:
+                    self.wait_for_idle_task(task_name)
+                    instruct_args = {'Name': agent_name, 'task_id': command_task_id}
+                    command_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
+                    if command_results['outcome'] == 'success' and command_results['results']:
+                        tmp_results = json.loads(zlib.decompress(base64.b64decode(command_results['results'].encode())).decode())
+                        if tmp_results['results'] is not None:
+                            if completion_string is not None and completion_string in tmp_results['results']:
+                                results = tmp_results['results']
+                            if completion_string is None:
+                                results = tmp_results['results']
+                    else:
+                        results = f'get_shell_command_results for execute_agent_shell_command failed.\nget_shell_command_results response: {command_results}'
+                    if not results:
+                        t.sleep(10)
+                return results
+            except Exception as e:
+                return f'unable to retrieve results for agent task ID {command_task_id} with error: {e}'
         else:
             return command_response
     
@@ -509,41 +512,36 @@ class Connect:
         else:
             return module_response
         if wait_for_results:
-            results = None
-            while not results:
-                instruct_args = {'Name': agent_name}
-                module_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
-                if module_results['outcome'] == 'success' and module_results['results']:
-                    tmp_results = json.loads(zlib.decompress(base64.b64decode(module_results['results'].encode())).decode())
-                    for tmp_result in tmp_results:
-                        if 'taskID' in tmp_result and tmp_result['taskID'] == module_task_id:
-                            if tmp_result['results'] is not None and 'Job started:' not in tmp_result['results']:
-                                if completion_string is not None and completion_string in tmp_result['results']:
-                                    results = tmp_result['results']
-                                if completion_string is None:
-                                    results = tmp_result['results']
-                else:
-                    results = f'get_shell_command_results for execute_agent_module failed.\n'
-                if not results:
-                    t.sleep(10)
-            return results
+            try:
+                results = None
+                while not results:
+                    self.wait_for_idle_task(task_name)
+                    instruct_args = {'Name': agent_name, 'task_id': module_task_id}
+                    module_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
+                    if module_results['outcome'] == 'success' and module_results['results']:
+                        tmp_results = json.loads(zlib.decompress(base64.b64decode(module_results['results'].encode())).decode())
+                        if tmp_results['results'] is not None and 'Job started:' not in tmp_results['results']:
+                            if completion_string is not None and completion_string in tmp_results['results']:
+                                results = tmp_results['results']
+                            if completion_string is None:
+                                results = tmp_results['results']
+                    else:
+                        results = f'get_shell_command_results for execute_agent_module failed.\nget_shell_command_results response: {module_results}'
+                    if not results:
+                        t.sleep(10)
+                return results
+            except Exception as e:
+                return f'unable to retrieve results for agent task ID {module_task_id} with error: {e}'
         else:
             return module_response
     
-    def get_agent_results(self, task_name, agent_name, task_id=None):
+    def get_agent_results(self, task_name, agent_name, task_id):
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
-        instruct_args = {'Name': agent_name}
+        instruct_args = {'Name': agent_name, 'task_id': task_id}
         agent_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
         if agent_results['results']:
             tmp_results = json.loads(zlib.decompress(base64.b64decode(agent_results['results'].encode())).decode())
-            if task_id:
-                for tmp_result in tmp_results:
-                    if 'taskID' in tmp_result and tmp_result['taskID'] == task_id:
-                        results = tmp_result['results']
-                if not results:
-                    results = tmp_results
-            else:
-                results = tmp_results
+            results = tmp_results['results']
         else:
             results = agent_results
         return results
