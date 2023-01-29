@@ -36,7 +36,9 @@ class Connect:
 
     @property
     def remote_api_endpoint(self):
-        if 'amazonaws.com' in self.api_domain_name:
+        if 'amazonaws.com' in self.api_domain_name and os.path.exists('.havoc/havoc.cfg'):
+            self.__remote_api_endpoint = f'https://{self.api_domain_name}/havoc/remote-task'
+        elif 'amazonaws.com' in self.api_domain_name:
             self.__remote_api_endpoint = f'https://{self.api_domain_name}/havoc_sh/remote-task'
         else:
             self.__remote_api_endpoint = f'https://{self.api_domain_name}/remote-task'
@@ -44,7 +46,9 @@ class Connect:
 
     @property
     def manage_api_endpoint(self):
-        if 'amazonaws.com' in self.api_domain_name:
+        if 'amazonaws.com' in self.api_domain_name and os.path.exists('.havoc/havoc.cfg'):
+            self.__remote_api_endpoint = f'https://{self.api_domain_name}/havoc/manage'
+        elif 'amazonaws.com' in self.api_domain_name:
             self.__manage_api_endpoint = f'https://{self.api_domain_name}/havoc_sh/manage'
         else:
             self.__manage_api_endpoint = f'https://{self.api_domain_name}/manage'
@@ -52,7 +56,9 @@ class Connect:
 
     @property
     def task_control_api_endpoint(self):
-        if 'amazonaws.com' in self.api_domain_name:
+        if 'amazonaws.com' in self.api_domain_name and os.path.exists('.havoc/havoc.cfg'):
+            self.__remote_api_endpoint = f'https://{self.api_domain_name}/havoc/task-control'
+        elif 'amazonaws.com' in self.api_domain_name:
             self.__task_control_api_endpoint = f'https://{self.api_domain_name}/havoc_sh/task-control'
         else:
             self.__task_control_api_endpoint = f'https://{self.api_domain_name}/task-control'
@@ -87,6 +93,46 @@ class Connect:
             print(err.request.url)
             print(err)
             print(err.response.text)
+
+    def create_deployment(self, deployment_version, deployment_admin_email, results_queue_expiration, api_domain_name, api_region, 
+                          tfstate_s3_bucket, tfstate_s3_key, tfstate_s3_region, tfstate_dynamodb_table):
+        payload = {
+            'resource': 'deployment',
+            'command': 'create',
+            'detail': {
+                'deployment_version': deployment_version,
+                'deployment_admin_email': deployment_admin_email,
+                'results_queue_expiration': results_queue_expiration,
+                'api_domain_name': api_domain_name,
+                'api_region': api_region,
+                'tfstate_s3_bucket': tfstate_s3_bucket,
+                'tfstate_s3_key': tfstate_s3_key,
+                'tfstate_s3_region': tfstate_s3_region,
+                'tfstate_dynamodb_table': tfstate_dynamodb_table
+            }
+        }
+        create_deployment_response = self.post(self.manage_api_endpoint, payload)
+        return create_deployment_response
+    
+    def update_deployment(self, **kwargs):
+        payload = {
+            'resource': 'deployment',
+            'command': 'update'
+        }
+        if kwargs:
+            payload['detail'] = kwargs
+        else:
+            payload['detail'] = {}
+        update_deployment_response = self.post(self.manage_api_endpoint, payload)
+        return update_deployment_response
+    
+    def get_deployment(self):
+        payload = {
+            'resource': 'deployment',
+            'command': 'get',
+        }
+        get_deployment_response = self.post(self.manage_api_endpoint, payload)
+        return get_deployment_response
 
     def list_tasks(self, task_name_contains='', task_status='running'):
         payload = {
@@ -132,12 +178,13 @@ class Connect:
         get_task_type_response = self.post(self.manage_api_endpoint, payload)
         return get_task_type_response
 
-    def create_task_type(self, task_type, source_image, capabilities, cpu, memory):
+    def create_task_type(self, task_type, task_version, source_image, capabilities, cpu, memory):
         payload = {
             'resource': 'task_type',
             'command': 'create',
             'detail': {
                 'task_type': task_type,
+                'task_version': task_version,
                 'source_image': source_image,
                 'capabilities': capabilities,
                 'cpu': cpu,
@@ -462,7 +509,6 @@ class Connect:
         instruct_command = 'get_agents'
         instruct_args = {'Name': agent_name}
         agents_list = self.interact_with_task(task_name, instruct_command, instruct_instance, instruct_args)
-        agent_exists = False
         for agent in agents_list['agents']:
             if agent_name == agent['name']:
                 return agent
@@ -569,13 +615,14 @@ class Connect:
                 t.sleep(5)
         return results
 
-    def register_task(self, task_name, task_context, task_type, attack_ip, local_ip):
+    def register_task(self, task_name, task_context, task_type, task_version, attack_ip, local_ip):
         payload = {
             'command': 'register_task',
             'detail': {
                 'task_name': task_name,
                 'task_context': task_context,
                 'task_type': task_type,
+                'task_version': task_version,
                 'attack_ip': attack_ip,
                 'local_ip': local_ip
             }
