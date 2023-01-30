@@ -47,7 +47,7 @@ class Connect:
     @property
     def manage_api_endpoint(self):
         if 'amazonaws.com' in self.api_domain_name and os.path.exists('.havoc/havoc.cfg'):
-            self.__remote_api_endpoint = f'https://{self.api_domain_name}/havoc/manage'
+            self.__manage_api_endpoint = f'https://{self.api_domain_name}/havoc/manage'
         elif 'amazonaws.com' in self.api_domain_name:
             self.__manage_api_endpoint = f'https://{self.api_domain_name}/havoc_sh/manage'
         else:
@@ -57,7 +57,7 @@ class Connect:
     @property
     def task_control_api_endpoint(self):
         if 'amazonaws.com' in self.api_domain_name and os.path.exists('.havoc/havoc.cfg'):
-            self.__remote_api_endpoint = f'https://{self.api_domain_name}/havoc/task-control'
+            self.__task_control_api_endpoint = f'https://{self.api_domain_name}/havoc/task-control'
         elif 'amazonaws.com' in self.api_domain_name:
             self.__task_control_api_endpoint = f'https://{self.api_domain_name}/havoc_sh/task-control'
         else:
