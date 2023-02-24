@@ -63,6 +63,14 @@ class Connect:
         else:
             self.__task_control_api_endpoint = f'https://{self.api_domain_name}/task-control'
         return self.__task_control_api_endpoint
+    
+    @property
+    def playbook_operator_control_api_endpoint(self):
+        if 'amazonaws.com' in self.api_domain_name and os.path.exists('.havoc/havoc.cfg'):
+            self.__playbook_operator_control_api_endpoint = f'https://{self.api_domain_name}/havoc/playbook-operator-control'
+        else:
+            self.__playbook_operator_control_api_endpoint = f'https://{self.api_domain_name}/playbook-operator-control'
+        return self.__playbook_operator_control_api_endpoint
 
     def post(self, uri, payload):
 
@@ -292,6 +300,111 @@ class Connect:
         delete_file_response = self.post(self.manage_api_endpoint, payload)
         return delete_file_response
 
+    def list_playbooks(self):
+        payload = {
+            'resource': 'playbook',
+            'command': 'list'
+        }
+        list_playbooks_response = self.post(self.manage_api_endpoint, payload)
+        return list_playbooks_response
+    
+    def get_playbook(self, playbook_name):
+        payload = {
+            'resource': 'playbook',
+            'command': 'get',
+            'detail': {'playbook_name': playbook_name}
+        }
+        get_playbook_response = self.post(self.manage_api_endpoint, payload)
+        return get_playbook_response
+    
+    def create_playbook(self, playbook_name, playbook_type, playbook_schedule, playbook_timeout, playbook_config):
+        payload = {
+            'resource': 'playbook',
+            'command': 'create',
+            'detail': {
+                'playbook_name': playbook_name, 
+                'playbook_type': playbook_type, 
+                'playbook_schedule': playbook_schedule, 
+                'playbook_timeout': playbook_timeout, 
+                'playbook_config': playbook_config
+            }
+        }
+        create_playbook_response = self.post(self.manage_api_endpoint, payload)
+        return create_playbook_response
+    
+    def delete_playbook(self, playbook_name):
+        payload = {
+            'resource': 'playbook',
+            'command': 'delete',
+            'detail': {'playbook_name': playbook_name}
+        }
+        delete_playbook_response = self.post(self.manage_api_endpoint, payload)
+        return delete_playbook_response
+    
+    def kill_playbook(self, playbook_name):
+        payload = {
+            'resource': 'playbook',
+            'command': 'kill',
+            'detail': {'playbook_name': playbook_name}
+        }
+        kill_playbook_response = self.post(self.manage_api_endpoint, payload)
+        return kill_playbook_response
+    
+    def run_playbook(self, playbook_name):
+        payload = {
+            'action': 'launch',
+            'detail': {'playbook_name': playbook_name}
+        }
+        run_playbook_response = self.post(self.playbook_operator_control_api_endpoint, payload)
+        return run_playbook_response
+    
+    def get_playbook_results(self, playbook_name, start_time=None, end_time=None):
+        payload = {
+            'action': 'get_results',
+            'detail': {'playbook_name': playbook_name, 'start_time': start_time, 'end_time': end_time}
+        }
+        get_playbook_results_response = self.post(self.playbook_operator_control_api_endpoint, payload)
+        return get_playbook_results_response
+    
+    def list_playbook_types(self):
+        payload = {
+            'resource': 'playbook_type',
+            'command': 'list'
+        }
+        list_playbook_types_response = self.post(self.manage_api_endpoint, payload)
+        return list_playbook_types_response
+
+    def get_playbook_type(self, playbook_type):
+        payload = {
+            'resource': 'playbook_type',
+            'command': 'get',
+            'detail': {'playbook_type': playbook_type}
+        }
+        get_playbook_type_response = self.post(self.manage_api_endpoint, payload)
+        return get_playbook_type_response
+
+    def create_playbook_type(self, playbook_type, playbook_version, playbook_template):
+        payload = {
+            'resource': 'playbook_type',
+            'command': 'create',
+            'detail': {
+                'playbook_type': playbook_type,
+                'playbook_version': playbook_version,
+                'playbook_template': playbook_template,
+            }
+        }
+        create_playbook_type_response = self.post(self.manage_api_endpoint, payload)
+        return create_playbook_type_response
+
+    def delete_playbook_type(self, playbook_type):
+        payload = {
+            'resource': 'playbook_type',
+            'command': 'delete',
+            'detail': {'playbook_type': playbook_type}
+        }
+        delete_playbook_type_response = self.post(self.manage_api_endpoint, payload)
+        return delete_playbook_type_response
+    
     def list_portgroups(self):
         payload = {
             'resource': 'portgroup',
