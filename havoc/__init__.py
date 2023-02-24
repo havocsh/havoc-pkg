@@ -24,19 +24,19 @@ def get_signature_key(key, date_stamp, region, host):
 
 class Connect:
 
-    def __init__(self, region, api_domain_name, api_key, secret):
+    def __init__(self, region, api_domain_name, api_key, secret, api_version=None):
         self.region = region
         self.api_domain_name = api_domain_name
         self.api_key = api_key
         self.secret = secret
-        self.session = None
+        self.api_version = api_version
         self.__remote_api_endpoint = None
         self.__manage_api_endpoint = None
         self.__task_control_api_endpoint = None
 
     @property
     def remote_api_endpoint(self):
-        if 'amazonaws.com' in self.api_domain_name and os.path.exists('.havoc/havoc.cfg'):
+        if 'amazonaws.com' in self.api_domain_name and self.api_version:
             self.__remote_api_endpoint = f'https://{self.api_domain_name}/havoc/remote-task'
         elif 'amazonaws.com' in self.api_domain_name:
             self.__remote_api_endpoint = f'https://{self.api_domain_name}/havoc_sh/remote-task'
@@ -46,7 +46,7 @@ class Connect:
 
     @property
     def manage_api_endpoint(self):
-        if 'amazonaws.com' in self.api_domain_name and os.path.exists('.havoc/havoc.cfg'):
+        if 'amazonaws.com' in self.api_domain_name and self.api_version:
             self.__manage_api_endpoint = f'https://{self.api_domain_name}/havoc/manage'
         elif 'amazonaws.com' in self.api_domain_name:
             self.__manage_api_endpoint = f'https://{self.api_domain_name}/havoc_sh/manage'
@@ -56,7 +56,7 @@ class Connect:
 
     @property
     def task_control_api_endpoint(self):
-        if 'amazonaws.com' in self.api_domain_name and os.path.exists('.havoc/havoc.cfg'):
+        if 'amazonaws.com' in self.api_domain_name and self.api_version:
             self.__task_control_api_endpoint = f'https://{self.api_domain_name}/havoc/task-control'
         elif 'amazonaws.com' in self.api_domain_name:
             self.__task_control_api_endpoint = f'https://{self.api_domain_name}/havoc_sh/task-control'
@@ -66,7 +66,7 @@ class Connect:
     
     @property
     def playbook_operator_control_api_endpoint(self):
-        if 'amazonaws.com' in self.api_domain_name and os.path.exists('.havoc/havoc.cfg'):
+        if 'amazonaws.com' in self.api_domain_name and self.api_version:
             self.__playbook_operator_control_api_endpoint = f'https://{self.api_domain_name}/havoc/playbook-operator-control'
         else:
             self.__playbook_operator_control_api_endpoint = f'https://{self.api_domain_name}/playbook-operator-control'
