@@ -300,7 +300,7 @@ class Connect:
         delete_file_response = self.post(self.manage_api_endpoint, payload)
         return delete_file_response
 
-    def list_playbooks(self, playbook_name_contains='', playbook_status='running'):
+    def list_playbooks(self, playbook_name_contains='', playbook_status='all'):
         payload = {
             'resource': 'playbook',
             'command': 'list',
