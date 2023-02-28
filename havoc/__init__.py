@@ -490,6 +490,50 @@ class Connect:
         }
         delete_domain_response = self.post(self.manage_api_endpoint, payload)
         return delete_domain_response
+    
+    def list_listeners(self):
+        payload = {
+            'resource': 'listener',
+            'command': 'list'
+        }
+        list_listeners_response = self.post(self.manage_api_endpoint, payload)
+        return list_listeners_response
+
+    def get_listener(self, listener_name):
+        payload = {
+            'resource': 'listener',
+            'command': 'get',
+            'detail': {'listener_name': listener_name}
+        }
+        get_listener_response = self.post(self.manage_api_endpoint, payload)
+        return get_listener_response
+
+    def create_listener(self, listener_name, listener_type, listener_port, task_name, portgroups, host_name=None,
+                        domain_name=None):
+        payload = {
+            'resource': 'listener',
+            'command': 'create',
+            'detail': {
+                'listener_name': listener_name,
+                'listener_type': listener_type,
+                'listener_port': listener_port,
+                'task_name': task_name,
+                'portgroups': portgroups,
+                'host_name': host_name,
+                'domain_name': domain_name
+            }
+        }
+        create_listener_response = self.post(self.manage_api_endpoint, payload)
+        return create_listener_response
+
+    def delete_listener(self, listener_name):
+        payload = {
+            'resource': 'listener',
+            'command': 'delete',
+            'detail': {'listener_name': listener_name}
+        }
+        delete_listener_response = self.post(self.manage_api_endpoint, payload)
+        return delete_listener_response
 
     def run_task(self, task_name, task_type, task_host_name='None', task_domain_name='None', portgroups=['None'],
                  end_time='None'):
