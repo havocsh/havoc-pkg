@@ -773,7 +773,7 @@ class Connect:
                 t.sleep(5)
         return results
 
-    def register_task(self, task_name, task_context, task_type, task_version, attack_ip, local_ip):
+    def register_task(self, task_name, task_context, task_type, task_version, public_ip, local_ip):
         payload = {
             'command': 'register_task',
             'detail': {
@@ -781,7 +781,7 @@ class Connect:
                 'task_context': task_context,
                 'task_type': task_type,
                 'task_version': task_version,
-                'attack_ip': attack_ip,
+                'public_ip': public_ip,
                 'local_ip': local_ip
             }
         }
