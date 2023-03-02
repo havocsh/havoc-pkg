@@ -617,9 +617,10 @@ class Connect:
             return instruct_task_response
         while not command_finished:
             instruct_results = self.get_task_results(task_name)
-            for entry in instruct_results['queue']:
-                if entry['instruct_command'] == instruct_command and entry['instruct_instance'] == instruct_instance:
-                    command_finished = True
+            if 'queue' in instruct_results:
+                for entry in instruct_results['queue']:
+                    if entry['instruct_command'] == instruct_command and entry['instruct_instance'] == instruct_instance:
+                        command_finished = True
             if not command_finished:
                 t.sleep(5)
         return 'task_shutdown completed.'
