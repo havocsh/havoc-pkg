@@ -813,7 +813,11 @@ class Connect:
                     payload = {'resource': 'workspace', 'command': 'get', 'detail': {'filename': f}}
                     get_file_response = self.post(self.manage_api_endpoint, payload)
                     decoded_file = base64.b64decode(get_file_response['file_contents'])
-                    new_file = open(f'{sync_path}/{f}', 'wb')
+                    new_file = None
+                    if os.name() == 'nt':
+                        new_file = open(f'{sync_path}\\{f}', 'wb+')
+                    else:
+                        new_file = open(f'{sync_path}/{f}', 'wb+')
                     new_file.write(decoded_file)
                     new_file.close()
         if sync_direction == 'sync_to_workspace':
