@@ -98,9 +98,7 @@ class Connect:
             r.raise_for_status()
             return json.loads(r.text)
         except requests.exceptions.HTTPError as err:
-            print(err.request.url)
-            print(err)
-            print(err.response.text)
+            return err.response.text
 
     def create_deployment(self, deployment_version, deployment_admin_email, results_queue_expiration, api_domain_name, api_region, 
                           tfstate_s3_bucket, tfstate_s3_key, tfstate_s3_region, tfstate_dynamodb_table):
