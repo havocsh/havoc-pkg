@@ -7,7 +7,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-import os, zlib, random, string, json, datetime, hashlib, hmac, requests, base64
+import os, re, zlib, random, string, json, datetime, hashlib, hmac, requests, base64
 import time as t
 
 
@@ -672,7 +672,7 @@ class Connect:
             else:
                 return False
 
-    def execute_agent_shell_command(self, task_name, agent_name, command, wait_for_results=True, completion_string=None):
+    def execute_agent_shell_command(self, task_name, agent_name, command, wait_for_results=True, beginning_string=None, completion_string=None):
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Name': agent_name, 'command': command}
         command_response = self.interact_with_task(task_name, 'agent_shell_command', instruct_instance, instruct_args)
@@ -690,9 +690,14 @@ class Connect:
                     if command_results['outcome'] == 'success' and command_results['results']:
                         tmp_results = json.loads(zlib.decompress(base64.b64decode(command_results['results'].encode())).decode())
                         if tmp_results['results'] is not None:
-                            if completion_string is not None and completion_string in tmp_results['results']:
+                            if beginning_string is not None and completion_string is not None:
+                                re_string = re.compile('(' + beginning_string + '.*' + completion_string + ')')
+                                re_results = re.search(re_string, tmp_results['results'])
+                                if re_results.groups():
+                                    results = re_results.group(1)
+                            elif completion_string is not None and completion_string in tmp_results['results']:
                                 results = tmp_results['results']
-                            if completion_string is None:
+                            else:
                                 results = tmp_results['results']
                     else:
                         results = f'get_shell_command_results for execute_agent_shell_command failed.\nget_shell_command_results response: {command_results}'
@@ -704,7 +709,7 @@ class Connect:
         else:
             return command_response
     
-    def execute_agent_module(self, task_name, agent_name, module, module_args, wait_for_results=True, completion_string=None):
+    def execute_agent_module(self, task_name, agent_name, module, module_args, wait_for_results=True, beginning_string=None, completion_string=None):
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Agent': agent_name, 'Name': module}
         for k, v in module_args.items():
@@ -724,9 +729,14 @@ class Connect:
                     if module_results['outcome'] == 'success' and module_results['results']:
                         tmp_results = json.loads(zlib.decompress(base64.b64decode(module_results['results'].encode())).decode())
                         if tmp_results['results'] is not None and 'Job started:' not in tmp_results['results']:
-                            if completion_string is not None and completion_string in tmp_results['results']:
+                            if beginning_string is not None and completion_string is not None:
+                                re_string = re.compile('(' + beginning_string + '.*' + completion_string + ')')
+                                re_results = re.search(re_string, tmp_results['results'])
+                                if re_results.groups():
+                                    results = re_results.group(1)
+                            elif completion_string is not None and completion_string in tmp_results['results']:
                                 results = tmp_results['results']
-                            if completion_string is None:
+                            else:
                                 results = tmp_results['results']
                     else:
                         results = f'get_shell_command_results for execute_agent_module failed.\nget_shell_command_results response: {module_results}'
