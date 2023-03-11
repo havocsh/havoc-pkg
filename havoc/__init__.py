@@ -738,6 +738,15 @@ class Connect:
         else:
             return module_response
     
+    def get_agent_task_ids(self, task_name, agent_name):
+        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+        instruct_args = {'Name': agent_name}
+        agent_task_ids = self.interact_with_task(task_name, 'get_task_id_list', instruct_instance, instruct_args)
+        if 'task_id_list' in agent_task_ids:
+            return agent_task_ids['task_id_list']
+        else:
+            return agent_task_ids
+
     def get_agent_results(self, task_name, agent_name, task_id):
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Name': agent_name, 'task_id': task_id}
