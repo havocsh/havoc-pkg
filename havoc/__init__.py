@@ -693,7 +693,7 @@ class Connect:
                             if beginning_string is not None and completion_string is not None:
                                 re_string = re.compile('(' + beginning_string + '.*' + completion_string + ')')
                                 re_results = re.search(re_string, tmp_results['results'])
-                                if re_results.groups():
+                                if re_results:
                                     results = re_results.group(1)
                             elif completion_string is not None and completion_string in tmp_results['results']:
                                 results = tmp_results['results']
@@ -732,7 +732,7 @@ class Connect:
                             if beginning_string is not None and completion_string is not None:
                                 re_string = re.compile('(' + beginning_string + '.*' + completion_string + ')')
                                 re_results = re.search(re_string, tmp_results['results'])
-                                if re_results.groups():
+                                if re_results:
                                     results = re_results.group(1)
                             elif completion_string is not None and completion_string in tmp_results['results']:
                                 results = tmp_results['results']
