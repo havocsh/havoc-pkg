@@ -98,6 +98,8 @@ class Connect:
             r.raise_for_status()
             return json.loads(r.text)
         except requests.exceptions.HTTPError as err:
+            if r.text:
+                return json.loads(r.text)
             return err.response.text
 
     def create_deployment(self, deployment_version, deployment_admin_email, results_queue_expiration, api_domain_name, api_region, 
