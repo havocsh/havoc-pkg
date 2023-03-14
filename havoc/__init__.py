@@ -680,7 +680,7 @@ class Connect:
             command_task_id = command_response['message']['taskID']
         else:
             return command_response
-        if wait_for_results:
+        if wait_for_results and wait_for_results.lower() != 'false':
             try:
                 results = None
                 while not results:
@@ -719,7 +719,7 @@ class Connect:
             module_task_id = module_response['message']['taskID']
         else:
             return module_response
-        if wait_for_results:
+        if wait_for_results and wait_for_results.lower() != 'false':
             try:
                 results = None
                 while not results:
