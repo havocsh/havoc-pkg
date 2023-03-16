@@ -228,16 +228,16 @@ class Connect:
         get_user_response = self.post(self.manage_api_endpoint, payload)
         return get_user_response
 
-    def create_user(self, user_id, admin):
+    def create_user(self, user_id, admin=None, remote_task=None, task_name=None):
         payload = {
             'resource': 'user',
             'command': 'create',
-            'detail': {'user_id': user_id, 'admin': admin}
+            'detail': {'user_id': user_id, 'admin': admin, 'remote_task': remote_task, 'task_name': task_name}
         }
         create_user_response = self.post(self.manage_api_endpoint, payload)
         return create_user_response
 
-    def update_user(self, user_id, new_user_id=None, admin=None, reset_keys=None):
+    def update_user(self, user_id, new_user_id=None, admin=None, remote_task=None, task_name=None, reset_keys=None):
         detail = {'user_id': user_id}
         if admin:
             detail['admin'] = admin
@@ -245,6 +245,10 @@ class Connect:
             detail['reset_keys'] = reset_keys
         if new_user_id:
             detail['new_user_id'] = new_user_id
+        if remote_task:
+            detail['remote_task'] = remote_task
+        if task_name:
+            detail['task_name'] = task_name
         payload = {
             'resource': 'user',
             'command': 'update',
