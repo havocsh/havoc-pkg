@@ -658,8 +658,7 @@ class Connect:
                 command_results = self.get_task_results(task_name)
                 if 'queue' in command_results:
                     for entry in command_results['queue']:
-                        if entry['instruct_command'] == instruct_command and entry[
-                            'instruct_instance'] == instruct_instance:
+                        if entry['instruct_command'] == instruct_command and entry['instruct_instance'] == instruct_instance:
                             results = json.loads(entry['instruct_command_output'])
                 if not results:
                     t.sleep(5)
@@ -667,6 +666,11 @@ class Connect:
             return interaction
         return results
     
+    def get_agents(self, task_name):
+        instruct_command = 'get_agents'
+        agents_list = self.interact_with_task(task_name, instruct_command)
+        return agents_list
+
     def verify_agent(self, task_name, agent_name):
         instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_command = 'get_agents'
