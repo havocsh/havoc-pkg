@@ -780,14 +780,17 @@ class Connect:
 
     def wait_for_c2(self, task_name):
         results = None
-        existing_agents = []
-        get_existing_agents = self.get_task_results(task_name)
-        if 'queue' in get_existing_agents:
-            for get_existing_agent in get_existing_agents['queue']:
-                instruct_command = get_existing_agent['instruct_command']
+        existing_c2 = []
+        get_task_results_response = self.get_task_results(task_name)
+        if 'queue' in get_task_results_response:
+            for task_result in get_task_results_response['queue']:
+                instruct_command = task_result['instruct_command']
                 if instruct_command == 'agent_status_monitor' or instruct_command == 'session_status_monitor':
-                    instruct_command_output = json.loads(get_existing_agent['instruct_command_output'])
-                    existing_agents.append(instruct_command_output['agent_info']['name'])
+                    instruct_command_output = json.loads(task_result['instruct_command_output'])
+                    if 'agent_info' in instruct_command_output:
+                        existing_c2.append(instruct_command_output['agent_info']['name'])
+                    if 'session_connected' in instruct_command_output:
+                        existing_c2.append(instruct_command_output['session_id'])
         while not results:
             command_results = self.get_task_results(task_name)
             if 'queue' in command_results:
@@ -795,8 +798,12 @@ class Connect:
                     instruct_command = command_result['instruct_command']
                     if instruct_command == 'agent_status_monitor' or instruct_command == 'session_status_monitor':
                         instruct_command_output = json.loads(command_result['instruct_command_output'])
-                        if instruct_command_output['agent_info']['name'] not in existing_agents:
-                            results = instruct_command_output
+                        if 'agent_info' in instruct_command_output:
+                            if instruct_command_output['agent_info']['name'] not in existing_c2:
+                                results = instruct_command_output
+                        if 'session_connected' in instruct_command_output:
+                            if instruct_command_output['session_id'] not in existing_c2:
+                                results = instruct_command_output
             if not results:
                 t.sleep(5)
         return results
