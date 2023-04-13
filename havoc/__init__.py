@@ -666,13 +666,30 @@ class Connect:
             return interaction
         return results
     
+    def run_session_command(self, task_name, session_id, session_command, end_strings=None, timeout=None, timeout_exception=None, instruct_instance=None):
+        instruct_command = 'run_session_command'
+        instruct_args = {'session_id': session_id, 'session_command': session_command, 'end_strings': end_strings, 'timeout': timeout, 'timeout_exception': timeout_exception}
+        run_session_command_response = self.interact_with_task(task_name, instruct_command, instruct_instance, instruct_args)
+        return run_session_command_response
+    
+    def run_session_shell_command(self, task_name, session_id, session_shell_command, end_strings=None, instruct_instance=None):
+        instruct_command = 'run_session_shell_command'
+        instruct_args = {'session_id': session_id, 'session_shell_command': session_shell_command, 'end_strings': end_strings}
+        run_session_command_response = self.interact_with_task(task_name, instruct_command, instruct_instance, instruct_args)
+        return run_session_command_response
+    
+    def kill_session(self, task_name, session_id, instruct_instance=None):
+        instruct_command = 'kill_session'
+        instruct_args = {'session_id': session_id}
+        run_session_command_response = self.interact_with_task(task_name, instruct_command, instruct_instance, instruct_args)
+        return run_session_command_response
+
     def get_agents(self, task_name):
         instruct_command = 'get_agents'
         agents_list = self.interact_with_task(task_name, instruct_command)
         return agents_list
 
-    def verify_agent(self, task_name, agent_name):
-        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+    def verify_agent(self, task_name, agent_name, instruct_instance=None):
         instruct_command = 'get_agents'
         instruct_args = {'Name': agent_name}
         agents_list = self.interact_with_task(task_name, instruct_command, instruct_instance, instruct_args)
@@ -682,8 +699,9 @@ class Connect:
             else:
                 return False
 
-    def execute_agent_shell_command(self, task_name, agent_name, command, wait_for_results=None, beginning_string=None, completion_string=None):
-        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+    def execute_agent_shell_command(self, task_name, agent_name, command, wait_for_results=None, beginning_string=None, completion_string=None, instruct_instance=None):
+        if instruct_instance is None:
+            instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Name': agent_name, 'command': command}
         command_response = self.interact_with_task(task_name, 'agent_shell_command', instruct_instance, instruct_args)
         if command_response['outcome'] == 'success':
@@ -719,8 +737,9 @@ class Connect:
         else:
             return command_response
     
-    def execute_agent_module(self, task_name, agent_name, module, module_args, wait_for_results=None, beginning_string=None, completion_string=None):
-        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
+    def execute_agent_module(self, task_name, agent_name, module, module_args, wait_for_results=None, beginning_string=None, completion_string=None, instruct_instance=None):
+        if instruct_instance is None:
+            instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Agent': agent_name, 'Name': module}
         for k, v in module_args.items():
             instruct_args[k] = v
@@ -759,18 +778,16 @@ class Connect:
             return module_response
     
     def get_agent_task_ids(self, task_name, agent_name):
-        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Name': agent_name}
-        agent_task_ids = self.interact_with_task(task_name, 'get_task_id_list', instruct_instance, instruct_args)
+        agent_task_ids = self.interact_with_task(task_name, 'get_task_id_list', instruct_args=instruct_args)
         if 'task_id_list' in agent_task_ids:
             return agent_task_ids['task_id_list']
         else:
             return agent_task_ids
 
     def get_agent_results(self, task_name, agent_name, task_id):
-        instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Name': agent_name, 'task_id': task_id}
-        agent_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
+        agent_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_args=instruct_args)
         if agent_results['results']:
             tmp_results = json.loads(zlib.decompress(base64.b64decode(agent_results['results'].encode())).decode())
             results = tmp_results['results']
