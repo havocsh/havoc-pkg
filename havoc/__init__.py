@@ -703,37 +703,46 @@ class Connect:
         if instruct_instance is None:
             instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Name': agent_name, 'command': command}
-        command_response = self.interact_with_task(task_name, 'agent_shell_command', instruct_instance, instruct_args)
+        command_response = self.interact_with_task(task_name, 'execute_agent_shell_command', instruct_instance, instruct_args)
         if command_response['outcome'] == 'success':
-            command_task_id = command_response['agent_shell_command']['taskID']
+            command_task_id = command_response['execute_agent_shell_command']['taskID']
         else:
             return command_response
         if wait_for_results and wait_for_results.lower() != 'false':
             try:
+                outcome = None
                 results = None
                 while not results:
                     self.wait_for_idle_task(task_name)
                     instruct_args = {'Name': agent_name, 'task_id': command_task_id}
                     command_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
-                    if command_results['outcome'] == 'success' and command_results['results']:
-                        tmp_results = json.loads(zlib.decompress(base64.b64decode(command_results['results'].encode())).decode())
+                    if command_results['outcome'] == 'success' and command_results['get_shell_command_results']:
+                        tmp_results = json.loads(zlib.decompress(base64.b64decode(command_results['get_shell_command_results'].encode())).decode())
                         if tmp_results['results'] is not None:
                             if beginning_string is not None and completion_string is not None:
                                 re_string = re.compile('(' + beginning_string + '.*' + completion_string + ')')
                                 re_results = re.search(re_string, tmp_results['results'])
                                 if re_results:
+                                    outcome = 'success'
                                     results = re_results.group(1)
                             elif completion_string is not None and completion_string in tmp_results['results']:
+                                outcome = 'success'
                                 results = tmp_results['results']
                             else:
+                                outcome = 'success'
                                 results = tmp_results['results']
                     else:
+                        outcome = 'failed'
                         results = f'get_shell_command_results for execute_agent_shell_command failed with error: {command_results}'
                     if not results:
                         t.sleep(10)
-                return results
+                output = {'outcome': outcome, 'execute_agent_shell_command': results}
+                return output
             except Exception as e:
-                return f'unable to retrieve results for agent task ID {command_task_id} with error: {e}'
+                outcome = 'failed'
+                results = f'unable to retrieve results for agent task ID {command_task_id} with error: {e}'
+                output = {'outcome': outcome, 'execute_agent_shell_command': results}
+                return output
         else:
             return command_response
     
@@ -751,30 +760,39 @@ class Connect:
             return module_response
         if wait_for_results and wait_for_results.lower() != 'false':
             try:
+                outcome = None
                 results = None
                 while not results:
                     self.wait_for_idle_task(task_name)
                     instruct_args = {'Name': agent_name, 'task_id': module_task_id}
                     module_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_instance, instruct_args)
-                    if module_results['outcome'] == 'success' and module_results['results']:
-                        tmp_results = json.loads(zlib.decompress(base64.b64decode(module_results['results'].encode())).decode())
+                    if module_results['outcome'] == 'success' and module_results['get_shell_command_results']:
+                        tmp_results = json.loads(zlib.decompress(base64.b64decode(module_results['get_shell_command_results'].encode())).decode())
                         if tmp_results['results'] is not None and 'Job started:' not in tmp_results['results']:
                             if beginning_string is not None and completion_string is not None:
                                 re_string = re.compile('(' + beginning_string + '.*' + completion_string + ')')
                                 re_results = re.search(re_string, tmp_results['results'])
                                 if re_results:
+                                    outcome = 'success'
                                     results = re_results.group(1)
                             elif completion_string is not None and completion_string in tmp_results['results']:
+                                outcome = 'success'
                                 results = tmp_results['results']
                             else:
+                                outcome = 'success'
                                 results = tmp_results['results']
                     else:
+                        outcome = 'failed'
                         results = f'get_shell_command_results for execute_agent_module failed with error: {module_results}'
                     if not results:
                         t.sleep(10)
-                return results
+                output = {'outcome': outcome, 'execute_agent_module': results}
+                return output
             except Exception as e:
-                return f'unable to retrieve results for agent task ID {module_task_id} with error: {e}'
+                outcome = 'failed'
+                results = f'unable to retrieve results for agent task ID {module_task_id} with error: {e}'
+                output = {'outcome': outcome, 'execute_agent_module': results}
+                return output
         else:
             return module_response
     
