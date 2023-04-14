@@ -705,7 +705,7 @@ class Connect:
         instruct_args = {'Name': agent_name, 'command': command}
         command_response = self.interact_with_task(task_name, 'agent_shell_command', instruct_instance, instruct_args)
         if command_response['outcome'] == 'success':
-            command_task_id = command_response['message']['taskID']
+            command_task_id = command_response['agent_shell_command']['taskID']
         else:
             return command_response
         if wait_for_results and wait_for_results.lower() != 'false':
@@ -728,7 +728,7 @@ class Connect:
                             else:
                                 results = tmp_results['results']
                     else:
-                        results = f'get_shell_command_results for execute_agent_shell_command failed.\nget_shell_command_results response: {command_results}'
+                        results = f'get_shell_command_results for execute_agent_shell_command failed with error: {command_results}'
                     if not results:
                         t.sleep(10)
                 return results
@@ -737,15 +737,16 @@ class Connect:
         else:
             return command_response
     
-    def execute_agent_module(self, task_name, agent_name, module, module_args, wait_for_results=None, beginning_string=None, completion_string=None, instruct_instance=None):
+    def execute_agent_module(self, task_name, agent_name, module, module_args=None, wait_for_results=None, beginning_string=None, completion_string=None, instruct_instance=None):
         if instruct_instance is None:
             instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         instruct_args = {'Agent': agent_name, 'Name': module}
-        for k, v in module_args.items():
-            instruct_args[k] = v
+        if module_args:
+            for k, v in module_args.items():
+                instruct_args[k] = v
         module_response = self.interact_with_task(task_name, 'execute_module', instruct_instance, instruct_args)
         if module_response['outcome'] == 'success':
-            module_task_id = module_response['message']['taskID']
+            module_task_id = module_response['execute_module']['taskID']
         else:
             return module_response
         if wait_for_results and wait_for_results.lower() != 'false':
@@ -768,7 +769,7 @@ class Connect:
                             else:
                                 results = tmp_results['results']
                     else:
-                        results = f'get_shell_command_results for execute_agent_module failed.\nget_shell_command_results response: {module_results}'
+                        results = f'get_shell_command_results for execute_agent_module failed with error: {module_results}'
                     if not results:
                         t.sleep(10)
                 return results
