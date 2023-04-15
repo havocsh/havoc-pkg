@@ -753,9 +753,9 @@ class Connect:
         if module_args:
             for k, v in module_args.items():
                 instruct_args[k] = v
-        module_response = self.interact_with_task(task_name, 'execute_module', instruct_instance, instruct_args)
+        module_response = self.interact_with_task(task_name, 'execute_agent_module', instruct_instance, instruct_args)
         if module_response['outcome'] == 'success':
-            module_task_id = module_response['execute_module']['taskID']
+            module_task_id = module_response['execute_agent_module']['taskID']
         else:
             return module_response
         if wait_for_results and wait_for_results.lower() != 'false':
