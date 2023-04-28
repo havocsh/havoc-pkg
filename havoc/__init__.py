@@ -619,11 +619,14 @@ class Connect:
         instruct_task_response = self.instruct_task(task_name, instruct_instance, instruct_command)
         if instruct_task_response['outcome'] != 'success':
             return instruct_task_response
+        instruct_id = instruct_task_response['instruct_id']
         while not command_finished:
             instruct_results = self.get_task_results(task_name)
             if 'queue' in instruct_results:
                 for entry in instruct_results['queue']:
-                    if entry['instruct_command'] == instruct_command and entry['instruct_instance'] == instruct_instance:
+                    if entry['instruct_id'] == instruct_id and \
+                    entry['instruct_command'] == instruct_command and \
+                    entry['instruct_instance'] == instruct_instance:
                         command_finished = True
             if not command_finished:
                 t.sleep(5)
@@ -654,11 +657,14 @@ class Connect:
             instruct_instance = ''.join(random.choice(string.ascii_letters) for i in range(6))
         interaction = self.instruct_task(task_name, instruct_instance, instruct_command, instruct_args)
         if interaction['outcome'] == 'success':
+            instruct_id = interaction['instruct_id']
             while not results:
                 command_results = self.get_task_results(task_name)
                 if 'queue' in command_results:
                     for entry in command_results['queue']:
-                        if entry['instruct_command'] == instruct_command and entry['instruct_instance'] == instruct_instance:
+                        if entry['instruct_id'] == instruct_id and \
+                           entry['instruct_command'] == instruct_command and \
+                           entry['instruct_instance'] == instruct_instance:
                             results = json.loads(entry['instruct_command_output'])
                 if not results:
                     t.sleep(5)
