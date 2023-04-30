@@ -678,9 +678,9 @@ class Connect:
         run_session_command_response = self.interact_with_task(task_name, instruct_command, instruct_instance, instruct_args)
         return run_session_command_response
     
-    def run_session_shell_command(self, task_name, session_id, session_shell_command, end_strings=None, instruct_instance=None):
+    def run_session_shell_command(self, task_name, session_id, session_shell_command, wait_time=None, instruct_instance=None):
         instruct_command = 'run_session_shell_command'
-        instruct_args = {'session_id': session_id, 'session_shell_command': session_shell_command, 'end_strings': end_strings}
+        instruct_args = {'session_id': session_id, 'session_shell_command': session_shell_command, 'wait_time': wait_time}
         run_session_command_response = self.interact_with_task(task_name, instruct_command, instruct_instance, instruct_args)
         return run_session_command_response
     
