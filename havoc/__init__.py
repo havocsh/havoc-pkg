@@ -603,7 +603,9 @@ class Connect:
 
     def task_startup(self, task_name, task_type, task_host_name='None', task_domain_name='None', portgroups=['None'],
                  end_time='None'):
-        self.run_task(task_name, task_type, task_host_name, task_domain_name, portgroups, end_time)
+        run_task_response = self.run_task(task_name, task_type, task_host_name, task_domain_name, portgroups, end_time)
+        if run_task_response['outcome'] != 'success':
+            return run_task_response
         task_status = None
         task_details = None
         while task_status != 'idle':
