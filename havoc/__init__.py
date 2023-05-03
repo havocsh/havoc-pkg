@@ -822,10 +822,12 @@ class Connect:
             results = agent_results
         return results
 
-    def wait_for_c2(self, task_name):
+    def wait_for_c2(self, task_name, time_skew=2):
         results = None
         existing_c2 = []
-        get_task_results_response = self.get_task_results(task_name)
+        time_skew_datetime = datetime.now() - datetime.timedelta(minutes=time_skew)
+        time_skew_string = time_skew_datetime.strftime('%m/%d/%Y %H:%M:%S')
+        get_task_results_response = self.get_task_results(task_name, end_time=time_skew_string)
         if 'queue' in get_task_results_response:
             for task_result in get_task_results_response['queue']:
                 instruct_command = task_result['instruct_command']
@@ -836,7 +838,7 @@ class Connect:
                     if 'session_connected' in instruct_command_output:
                         existing_c2.append(instruct_command_output['session_id'])
         while not results:
-            command_results = self.get_task_results(task_name)
+            command_results = self.get_task_results(task_name, start_time=time_skew_string)
             if 'queue' in command_results:
                 for command_result in command_results['queue']:
                     instruct_command = command_result['instruct_command']
