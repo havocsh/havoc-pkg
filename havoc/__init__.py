@@ -825,7 +825,7 @@ class Connect:
     def wait_for_c2(self, task_name, time_skew=2):
         results = None
         existing_c2 = []
-        time_skew_datetime = datetime.now() - datetime.timedelta(minutes=time_skew)
+        time_skew_datetime = datetime.datetime.now() - datetime.timedelta(minutes=time_skew)
         time_skew_string = time_skew_datetime.strftime('%m/%d/%Y %H:%M:%S')
         get_task_results_response = self.get_task_results(task_name, end_time=time_skew_string)
         if 'queue' in get_task_results_response:
