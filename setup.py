@@ -13,7 +13,7 @@ setup(
 
     # Project requires requests
     install_requires=[
-        "requests==2.25.0"
+        "requests<=2.29.0"
     ],
 
 
