@@ -512,15 +512,13 @@ class Connect:
         get_listener_response = self.post(self.manage_api_endpoint, payload)
         return get_listener_response
 
-    def create_listener(self, listener_name, listener_type, listener_port, task_name, portgroups, host_name=None,
-                        domain_name=None):
+    def create_listener(self, listener_name, listener_config, task_name, portgroups, host_name=None, domain_name=None):
         payload = {
             'resource': 'listener',
             'command': 'create',
             'detail': {
                 'listener_name': listener_name,
-                'listener_type': listener_type,
-                'listener_port': listener_port,
+                'listener_config': listener_config,
                 'task_name': task_name,
                 'portgroups': portgroups,
                 'host_name': host_name,
