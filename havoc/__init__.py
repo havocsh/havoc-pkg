@@ -820,7 +820,7 @@ class Connect:
             results = agent_results
         return results
 
-    def wait_for_c2(self, task_name, time_skew=2):
+    def wait_for_c2(self, task_name, time_skew=0):
         results = None
         existing_c2 = []
         time_skew_datetime = datetime.datetime.now() - datetime.timedelta(minutes=int(time_skew))
