@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="havoc",
-    version="1.0.0",
+    version="1.0.1",
     packages=find_packages(),
 
     # Project requires Python 3.7 or higher but less than Python 4
@@ -20,10 +20,10 @@ setup(
     # metadata to display on PyPI
     author="Tom D'Aquino",
     author_email="tom@havoc.sh",
-    description="This is the havoc.sh REST API library Package",
+    description="This is the ./HAVOC REST API library Package",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    keywords="havoc.sh REST API library",
+    keywords="./HAVOC REST API library",
     url="https://havoc.sh/",
     project_urls={
         "Bug Tracker": "https://github.com/havocsh/havoc-pkg/issues",
