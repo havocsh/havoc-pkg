@@ -421,12 +421,24 @@ class Connect:
         run_playbook_response = self.post(self.playbook_operator_control_api_endpoint, payload)
         return run_playbook_response
     
-    def get_playbook_results(self, playbook_name, start_time=None, end_time=None):
+    def get_playbook_results(self, playbook_name, operator_command=None, start_time=None, end_time=None):
         payload = {
             'action': 'get_results',
             'detail': {'playbook_name': playbook_name, 'start_time': start_time, 'end_time': end_time}
         }
         get_playbook_results_response = self.post(self.playbook_operator_control_api_endpoint, payload)
+        if 'queue' not in get_playbook_results_response:
+            return get_playbook_results_response
+        filtered_results = []
+        if not operator_command:
+            for result in get_playbook_results_response['queue']:
+                filtered_results.append(result)
+        if operator_command:
+            for result in get_playbook_results_response['queue']:
+                if result['operator_command'] == operator_command:
+                    filtered_results.append(result)
+        del get_playbook_results_response['queue']
+        get_playbook_results_response['queue'] = filtered_results
         return get_playbook_results_response
     
     def list_playbook_types(self):
@@ -625,16 +637,12 @@ class Connect:
         instruct_task_response = self.post(self.task_control_api_endpoint, payload)
         return instruct_task_response
 
-    def get_task_results(self, task_name, start_time=None, end_time=None):
+    def get_task_results(self, task_name, instruct_command=None, instruct_instance=None, start_time=None, end_time=None):
         payload = {
             'action': 'get_results',
             'detail': {'task_name': task_name, 'start_time': start_time, 'end_time': end_time}
         }
         get_task_results_response = self.post(self.task_control_api_endpoint, payload)
-        return get_task_results_response
-
-    def get_filtered_task_results(self, task_name, instruct_command=None, instruct_instance=None, start_time=None, end_time=None):
-        get_task_results_response = self.get_task_results(task_name, start_time, end_time)
         if 'queue' not in get_task_results_response:
             return get_task_results_response
         filtered_results = []
@@ -881,6 +889,34 @@ class Connect:
             payload['detail']['filter_command_timeout'] = filter_command_timeout
         execute_trigger_response = self.post(self.trigger_executor_api_endpoint, payload)
         return execute_trigger_response
+    
+    def get_trigger_results(self, trigger_name, filter_command=None, execute_command=None, start_time=None, end_time=None):
+        payload = {
+            'action': 'get_results',
+            'detail': {'trigger_name': trigger_name, 'start_time': start_time, 'end_time': end_time}
+        }
+        get_trigger_results_response = self.post(self.trigger_executor_api_endpoint, payload)
+        if 'queue' not in get_trigger_results_response:
+            return get_trigger_results_response
+        filtered_results = []
+        if not execute_command and not filter_command:
+            for result in get_trigger_results_response['queue']:
+                filtered_results.append(result)
+        if filter_command and not execute_command:
+            for result in get_trigger_results_response['queue']:
+                if result['filter_command'] == filter_command:
+                    filtered_results.append(result)
+        if execute_command and not filter_command:
+            for result in get_trigger_results_response['queue']:
+                if result['execute_command'] == execute_command:
+                    filtered_results.append(result)
+        if filter_command and execute_command:
+            for result in get_trigger_results_response['queue']:
+                if result['filter_command'] == filter_command and result['execute_command'] == execute_command:
+                    filtered_results.append(result)
+        del get_trigger_results_response['queue']
+        get_trigger_results_response['queue'] = filtered_results
+        return get_trigger_results_response
     
     def get_agent_task_ids(self, task_name, agent_name):
         instruct_args = {'Name': agent_name}
