@@ -409,7 +409,7 @@ class Connect:
         kill_playbook_response = self.post(self.manage_api_endpoint, payload)
         return kill_playbook_response
     
-    def run_playbook(self, playbook_name, playbook_type=None, playbook_config=None):
+    def run_playbook(self, playbook_name, playbook_type=None, playbook_config=None, playbook_timeout=None):
         payload = {
             'action': 'launch',
             'detail': {'playbook_name': playbook_name}
@@ -418,6 +418,8 @@ class Connect:
             payload['detail']['playbook_type'] = playbook_type
         if playbook_config:
             payload['detail']['playbook_config'] = playbook_config
+        if playbook_timeout:
+            payload['detail']['playbook_timeout'] = playbook_timeout
         run_playbook_response = self.post(self.playbook_operator_control_api_endpoint, payload)
         return run_playbook_response
     
