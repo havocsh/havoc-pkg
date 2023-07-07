@@ -113,8 +113,8 @@ class Connect:
             return err.response.text
 
     def create_deployment(self, deployment_version, deployment_admin_email, results_queue_expiration, api_domain_name, api_region,
-                          enable_task_results_logging, task_results_logging_bucket, tfstate_s3_bucket, tfstate_s3_key, tfstate_s3_region,
-                          tfstate_dynamodb_table):
+                          enable_task_results_logging, task_results_logging_cwlogs_group, tfstate_s3_bucket, tfstate_s3_key,
+                          tfstate_s3_region, tfstate_dynamodb_table):
         payload = {
             'resource': 'deployment',
             'command': 'create',
@@ -125,7 +125,7 @@ class Connect:
                 'api_domain_name': api_domain_name,
                 'api_region': api_region,
                 'enable_task_results_logging': enable_task_results_logging,
-                'task_results_logging_bucket': task_results_logging_bucket,
+                'task_results_logging_cwlogs_group': task_results_logging_cwlogs_group,
                 'tfstate_s3_bucket': tfstate_s3_bucket,
                 'tfstate_s3_key': tfstate_s3_key,
                 'tfstate_s3_region': tfstate_s3_region,
