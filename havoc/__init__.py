@@ -936,11 +936,11 @@ class Connect:
     def get_agent_results(self, task_name, agent_name, task_id):
         instruct_args = {'Name': agent_name, 'task_id': task_id}
         agent_results = self.interact_with_task(task_name, 'get_shell_command_results', instruct_args=instruct_args)
-        if agent_results['results']:
+        if 'results' in agent_results and agent_results['results']:
             tmp_results = json.loads(zlib.decompress(base64.b64decode(agent_results['results'].encode())).decode())
             results = tmp_results['results']
         else:
-            results = agent_results
+            results = []
         return results
 
     def wait_for_c2(self, task_name, time_skew=0):
