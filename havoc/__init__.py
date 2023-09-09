@@ -35,6 +35,8 @@ class Connect:
         self.__task_control_api_endpoint = None
         self.__playbook_operator_control_api_endpoint = None
         self.__trigger_executor_api_endpoint = None
+        self.__workspace_access_get_api_endpoint = None
+        self.__workspace_access_post_api_endpoint = None
 
     @property
     def remote_api_endpoint(self):
@@ -81,6 +83,22 @@ class Connect:
         else:
             self.__trigger_executor_api_endpoint = f'https://{self.api_domain_name}/trigger-executor'
         return self.__trigger_executor_api_endpoint
+
+    @property
+    def workspace_access_get_api_endpoint(self):
+        if 'amazonaws.com' in self.api_domain_name and self.api_version:
+            self.__workspace_access_get_api_endpoint = f'https://{self.api_domain_name}/havoc/workspace-access-get'
+        else:
+            self.__workspace_access_get_api_endpoint = f'https://{self.api_domain_name}/workspace-access-get'
+        return self.__workspace_access_get_api_endpoint
+    
+    @property
+    def workspace_access_post_api_endpoint(self):
+        if 'amazonaws.com' in self.api_domain_name and self.api_version:
+            self.__workspace_access_post_api_endpoint = f'https://{self.api_domain_name}/havoc/workspace-access-post'
+        else:
+            self.__workspace_access_post_api_endpoint = f'https://{self.api_domain_name}/workspace-access-post'
+        return self.__workspace_access_post_api_endpoint
 
     def post(self, uri, payload):
 
@@ -614,6 +632,73 @@ class Connect:
         delete_listener_response = self.post(self.manage_api_endpoint, payload)
         return delete_listener_response
 
+    def list_workspace_get_urls(self, filename=None):
+        payload = {
+            'resource': 'workspace_access',
+            'command': 'list',
+            'detail': {}
+        }
+        if filename:
+            payload['detail']['filename'] = filename
+        list_workspace_get_urls_response = self.post(self.workspace_access_get_api_endpoint, payload)
+        return list_workspace_get_urls_response
+
+    def get_workspace_get_url(self, filename):
+        payload = {
+            'resource': 'workspace_access',
+            'command': 'get',
+            'detail': {'filename': filename}
+        }
+        get_workspace_get_url_response = self.post(self.workspace_access_get_api_endpoint, payload)
+        return get_workspace_get_url_response
+
+    def create_workspace_get_url(self, filename, expiration=None):
+        payload = {
+            'resource': 'workspace_access',
+            'command': 'create',
+            'detail': {
+                'filename': filename,
+                'expiration': expiration
+            }
+        }
+        create_workspace_get_url_response = self.post(self.workspace_access_get_api_endpoint, payload)
+        return create_workspace_get_url_response
+
+    def list_workspace_post_urls(self, path=None, filename=None):
+        payload = {
+            'resource': 'workspace_access',
+            'command': 'list',
+            'detail': {}
+        }
+        if path:
+            payload['detail']['path'] = path
+        if filename:
+            payload['detail']['filename'] = filename
+        list_workspace_post_urls_response = self.post(self.workspace_access_post_api_endpoint, payload)
+        return list_workspace_post_urls_response
+
+    def get_workspace_post_url(self, path, filename):
+        payload = {
+            'resource': 'workspace_access',
+            'command': 'get',
+            'detail': {'path': path, 'filename': filename}
+        }
+        get_workspace_post_url_response = self.post(self.workspace_access_post_api_endpoint, payload)
+        return get_workspace_post_url_response
+
+    def create_workspace_post_url(self, path, filename, expiration=None):
+        payload = {
+            'resource': 'workspace_access',
+            'command': 'create',
+            'detail': {
+                'path': path,
+                'filename': filename,
+                'expiration': expiration
+            }
+        }
+        create_workspace_post_url_response = self.post(self.workspace_access_post_api_endpoint, payload)
+        return create_workspace_post_url_response
+    
     def run_task(self, task_name, task_type, task_host_name='None', task_domain_name='None', portgroups=['None'],
                  end_time='None'):
         payload = {
