@@ -657,10 +657,11 @@ class Connect:
             'resource': 'workspace_access',
             'command': 'create',
             'detail': {
-                'filename': filename,
-                'expiration': expiration
+                'filename': filename
             }
         }
+        if expiration:
+            payload['detail']['expiration'] = expiration
         create_workspace_get_url_response = self.post(self.workspace_access_get_api_endpoint, payload)
         return create_workspace_get_url_response
 
@@ -692,10 +693,11 @@ class Connect:
             'command': 'create',
             'detail': {
                 'path': path,
-                'filename': filename,
-                'expiration': expiration
+                'filename': filename
             }
         }
+        if expiration:
+            payload['detail']['expiration'] = expiration
         create_workspace_post_url_response = self.post(self.workspace_access_post_api_endpoint, payload)
         return create_workspace_post_url_response
     
