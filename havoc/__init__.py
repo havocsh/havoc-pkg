@@ -344,40 +344,43 @@ class Connect:
         delete_user_response = self.post(self.manage_api_endpoint, payload)
         return delete_user_response
 
-    def list_files(self):
+    def list_files(self, path=None):
         payload = {
             'resource': 'workspace',
-            'command': 'list'
+            'command': 'list',
+            'detail': {}
         }
+        if path:
+            payload['detail']['path'] = path
         list_files_response = self.post(self.manage_api_endpoint, payload)
         return list_files_response
 
-    def get_file(self, file_name):
+    def get_file(self, path, file_name):
         payload = {
             'resource': 'workspace',
             'command': 'get',
-            'detail': {'filename': file_name}
+            'detail': {'path': path, 'filename': file_name}
         }
         get_file_response = self.post(self.manage_api_endpoint, payload)
         decoded_file = base64.b64decode(get_file_response['file_contents'])
         get_file_response['file_contents'] = decoded_file
         return get_file_response
 
-    def create_file(self, file_name, raw_file):
+    def create_file(self, path, file_name, raw_file):
         encoded_file = base64.b64encode(raw_file).decode()
         payload = {
             'resource': 'workspace',
             'command': 'create',
-            'detail': {'filename': file_name, 'file_contents': encoded_file}
+            'detail': {'path': path, 'filename': file_name, 'file_contents': encoded_file}
         }
         create_file_response = self.post(self.manage_api_endpoint, payload)
         return create_file_response
 
-    def delete_file(self, file_name):
+    def delete_file(self, path, file_name):
         payload = {
             'resource': 'workspace',
             'command': 'delete',
-            'detail': {'filename': file_name}
+            'detail': {'path': path, 'filename': file_name}
         }
         delete_file_response = self.post(self.manage_api_endpoint, payload)
         return delete_file_response
