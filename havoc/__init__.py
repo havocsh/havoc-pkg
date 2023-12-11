@@ -874,14 +874,16 @@ class Connect:
 
     def list_empire_agents(self, task_name=None):
         agents_list = []
+        instruct_command = 'list_empire_agents'
         if task_name is None:
-            list_tasks_response = self.list_tasks(task_name_contains=task_name, task_type='powershell_empire')
+            list_tasks_response = self.list_tasks(task_type='powershell_empire')
             if len(list_tasks_response['tasks']) != 0:
                 for task in list_tasks_response['tasks']:
                     task_name=task['task_name']
-                    instruct_command = 'list_empire_agents'
                     list_agents_response = self.interact_with_task(task_name, instruct_command)
                     agents_list.append({'task_name': task_name, instruct_command: list_agents_response[instruct_command]})
+            else:
+                return agents_list
         else:
             list_agents_response = self.interact_with_task(task_name, instruct_command)
             agents_list.append({'task_name': task_name, instruct_command: list_agents_response[instruct_command]})
